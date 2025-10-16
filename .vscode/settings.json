@@ -1,0 +1,45 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.eclipse.downloadSources": true,
+    "java.maven.downloadSources": true,
+    "java.gradle.buildServer.enabled": "off",
+    // Android specific settings
+    "android.sdk.path": "~/Library/Android/sdk",
+    "android.home": "~/Library/Android/sdk",
+    // Kotlin settings
+    "kotlin.languageServer.enabled": true,
+    "kotlin.formatting.enabled": true,
+    // File associations
+    "files.associations": {
+        "*.kt": "kotlin",
+        "*.kts": "kotlin",
+        "*.gradle": "groovy",
+        "*.gradle.kts": "kotlin"
+    },
+    // Editor settings for Android development
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    // Terminal settings
+    "terminal.integrated.env.osx": {
+        "ANDROID_HOME": "~/Library/Android/sdk",
+        "PATH": "${env:PATH}:~/Library/Android/sdk/platform-tools:~/Library/Android/sdk/tools"
+    },
+    // Gradle settings
+    "gradle.nestedProjects": true,
+    "gradle.autoDetect": "on",
+    // Git settings
+    "git.ignoreLimitWarning": true,
+    // Search exclusions
+    "search.exclude": {
+        "**/build": true,
+        "**/.gradle": true,
+        "**/node_modules": true
+    },
+    // File watcher exclusions
+    "files.watcherExclude": {
+        "**/build/**": true,
+        "**/.gradle/**": true
+    }
+}

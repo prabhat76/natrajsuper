@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Natraj</string>
+    <string name="clicked_banner">Clicked: %1$s</string>
+    <string name="selected_category">Selected category: %1$s</string>
+    <string name="applied_offer">Applied offer: %1$s</string>
+    <string name="added_to_cart">Added %1$s to cart</string>
+    <string name="added_to_favorites">Added %1$s to favorites</string>
+    <string name="whatsapp_not_installed">WhatsApp not installed</string>
+    <string name="opening_search">Opening search</string>
+</resources>

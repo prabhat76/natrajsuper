@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Large tablet/desktop dimensions -->
+    <integer name="product_grid_columns">4</integer>
+    <integer name="category_grid_columns">8</integer>
+</resources>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_festive_gradient"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp">
+
+    <!-- Logo/Brand Area -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- Logo Container with White Background -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:elevation="8dp"
+            app:cardCornerRadius="20dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardElevation="8dp">
+
+            <!-- App Logo -->
+            <ImageView
+                android:id="@+id/logo_image"
+                android:layout_width="280dp"
+                android:layout_height="280dp"
+                android:padding="16dp"
+                android:src="@drawable/natraj_logo"
+                android:scaleType="fitCenter"
+                android:contentDescription="Natraj Super Logo" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Subtitle -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="A SIGN OF TRUST"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold|italic"
+            android:letterSpacing="0.15"
+            android:shadowColor="@color/black"
+            android:shadowRadius="4"
+            android:shadowDx="2"
+            android:shadowDy="2" />
+    </LinearLayout>
+
+    <!-- Diwali Message -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎆 DIWALI SUPER SALE 🎆"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Up to 50% OFF on all products"
+            android:textColor="@color/gold_light"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Bottom Text -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
+        android:text="शुभ दीपावली"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:fontFamily="serif" />
+
+</LinearLayout>

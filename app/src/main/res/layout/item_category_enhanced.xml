@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_small"
+    android:gravity="center">
+
+    <!-- Category Image Container with Enhanced Styling -->
+    <FrameLayout
+        android:layout_width="@dimen/category_image_size"
+        android:layout_height="@dimen/category_image_size"
+        android:layout_gravity="center">
+
+        <!-- Background Circle -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:cardCornerRadius="@dimen/product_card_corner_radius"
+            app:cardElevation="@dimen/product_card_elevation"
+            app:cardBackgroundColor="@color/background_card">
+
+            <!-- Gradient Background -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_category_gradient">
+
+                <ImageView
+                    android:id="@+id/category_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="@dimen/margin_small"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_launcher_background" />
+            </FrameLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Special Badge (Optional) -->
+        <TextView
+            android:id="@+id/special_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="-4dp"
+            android:layout_marginEnd="-4dp"
+            android:background="@drawable/bg_discount"
+            android:text="SALE"
+            android:textColor="@color/discount_text"
+            android:textSize="8sp"
+            android:textStyle="bold"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="2dp"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Category Name -->
+    <TextView
+        android:id="@+id/category_name"
+        android:layout_width="@dimen/category_item_size"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="Category"
+        android:textColor="@color/text_primary"
+        android:textSize="@dimen/text_size_small"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:lineSpacingExtra="2dp" />
+
+</LinearLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tablet dimensions (sw600dp and above) -->
+    <dimen name="margin_small">12dp</dimen>
+    <dimen name="margin_medium">24dp</dimen>
+    <dimen name="margin_large">32dp</dimen>
+    <dimen name="padding_small">12dp</dimen>
+    <dimen name="padding_medium">24dp</dimen>
+    <dimen name="padding_large">32dp</dimen>
+    
+    <!-- Text sizes for tablets -->
+    <dimen name="text_size_small">14sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_large">18sp</dimen>
+    <dimen name="text_size_title">20sp</dimen>
+    <dimen name="text_size_heading">24sp</dimen>
+    
+    <!-- Product card dimensions for tablets -->
+    <dimen name="product_card_elevation">6dp</dimen>
+    <dimen name="product_card_corner_radius">12dp</dimen>
+    <dimen name="product_image_height">180dp</dimen>
+    
+    <!-- Category item dimensions for tablets -->
+    <dimen name="category_item_size">100dp</dimen>
+    <dimen name="category_image_size">80dp</dimen>
+    
+    <!-- Banner height for tablets -->
+    <dimen name="banner_height">240dp</dimen>
+</resources>

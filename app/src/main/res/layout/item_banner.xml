@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Banner Background Image -->
+        <ImageView
+            android:id="@+id/banner_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher_background" />
+
+        <!-- Overlay Gradient -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_festive_gradient"
+            android:alpha="0.7" />
+
+        <!-- Banner Content -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="20dp">
+
+            <!-- Main Title -->
+            <TextView
+                android:id="@+id/banner_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🪔 DIWALI SUPER SALE 🪔"
+                android:textColor="@color/white"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:shadowColor="@color/black"
+                android:shadowRadius="2"
+                android:shadowDx="1"
+                android:shadowDy="1" />
+
+            <!-- Subtitle -->
+            <TextView
+                android:id="@+id/banner_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="UP TO 50% OFF"
+                android:textColor="@color/gold_light"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <!-- Description -->
+            <TextView
+                android:id="@+id/banner_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="On all agricultural equipment"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:gravity="center" />
+
+            <!-- CTA Button -->
+            <Button
+                android:id="@+id/banner_cta_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@color/white"
+                android:text="Shop Now"
+                android:textColor="@color/primary"
+                android:textStyle="bold"
+                android:paddingHorizontal="24dp" />
+        </LinearLayout>
+    </FrameLayout>
+</androidx.cardview.widget.CardView>
