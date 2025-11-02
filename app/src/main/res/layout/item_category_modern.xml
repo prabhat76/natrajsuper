@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="140dp"
+    android:layout_height="180dp"
+    android:layout_margin="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardElevation="4dp"
+    app:cardCornerRadius="16dp"
+    app:cardBackgroundColor="@color/white"
+    app:rippleColor="?attr/colorPrimary">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="12dp">
+
+        <!-- Category Icon Container with Gradient Background -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:cardCornerRadius="40dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="12dp">
+            
+            <FrameLayout
+                android:id="@+id/category_icon_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/gradient_primary">
+                
+                <ImageView
+                    android:id="@+id/category_icon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:scaleType="centerInside"
+                    android:padding="8dp"
+                    tools:src="@drawable/ic_category"
+                    app:tint="@color/white" />
+                    
+            </FrameLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Category Name -->
+        <TextView
+            android:id="@+id/category_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:lineSpacingExtra="2dp"
+            tools:text="Chaff Cutters" />
+
+        <!-- Product Count Badge -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/category_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            style="@style/Widget.Material3.Chip.Assist"
+            app:chipBackgroundColor="?attr/colorPrimaryContainer"
+            app:chipMinHeight="24dp"
+            app:chipStrokeWidth="0dp"
+            android:textSize="11sp"
+            tools:text="12 items" />
+
+    </LinearLayout>
+
+    <!-- Selection Indicator -->
+    <View
+        android:id="@+id/selection_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_gravity="bottom"
+        android:background="?attr/colorPrimary"
+        android:visibility="gone" />
+
+</com.google.android.material.card.MaterialCardView>

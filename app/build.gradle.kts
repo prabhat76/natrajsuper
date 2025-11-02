@@ -32,8 +32,8 @@ android {
             )
         }
         debug {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.cardview)
     implementation(libs.androidx.recyclerview)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation(libs.glide)
     implementation(libs.gson)
     
@@ -78,6 +79,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
     
     // PDF Viewer for in-app reading
     implementation("com.github.mhiew:android-pdf-viewer:3.2.0-beta.1") {

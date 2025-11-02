@@ -1,90 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_festive_gradient"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="32dp">
+    android:background="@drawable/bg_festive_gradient">
 
-    <!-- Logo/Brand Area -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center">
-
-        <!-- Logo Container with White Background -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:elevation="8dp"
-            app:cardCornerRadius="20dp"
-            app:cardBackgroundColor="@color/white"
-            app:cardElevation="8dp">
-
-            <!-- App Logo -->
-            <ImageView
-                android:id="@+id/logo_image"
-                android:layout_width="280dp"
-                android:layout_height="280dp"
-                android:padding="16dp"
-                android:src="@drawable/natraj_logo"
-                android:scaleType="fitCenter"
-                android:contentDescription="Natraj Super Logo" />
-        </androidx.cardview.widget.CardView>
-
-        <!-- Subtitle -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="A SIGN OF TRUST"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold|italic"
-            android:letterSpacing="0.15"
-            android:shadowColor="@color/black"
-            android:shadowRadius="4"
-            android:shadowDx="2"
-            android:shadowDy="2" />
-    </LinearLayout>
-
-    <!-- Diwali Message -->
+    <!-- Main Content Container -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center">
+        android:gravity="center"
+        android:padding="32dp">
 
-        <TextView
+        <!-- Logo/Brand Area -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🎆 DIWALI SUPER SALE 🎆"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:orientation="vertical"
+            android:gravity="center">
 
-        <TextView
+            <!-- Logo Container with White Background and Shadow -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/logo_card"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:elevation="12dp"
+                app:cardCornerRadius="24dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="12dp">
+
+                <!-- App Logo -->
+                <ImageView
+                    android:id="@+id/logo_image"
+                    android:layout_width="240dp"
+                    android:layout_height="240dp"
+                    android:padding="20dp"
+                    android:src="@drawable/natraj_logo_official"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Natraj Super Logo" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- Brand Name -->
+            <TextView
+                android:id="@+id/brand_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="NATRAJ SUPER"
+                android:textColor="@color/white"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:shadowColor="@color/black"
+                android:shadowRadius="6"
+                android:shadowDx="2"
+                android:shadowDy="2" />
+
+            <!-- Subtitle -->
+            <TextView
+                android:id="@+id/subtitle_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="A SIGN OF TRUST"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="italic"
+                android:letterSpacing="0.15"
+                android:alpha="0.9"
+                android:shadowColor="@color/black"
+                android:shadowRadius="4"
+                android:shadowDx="2"
+                android:shadowDy="2" />
+        </LinearLayout>
+
+        <!-- Spacer -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Loading Indicator -->
+        <LinearLayout
+            android:id="@+id/loading_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Up to 50% OFF on all products"
-            android:textColor="@color/gold_light"
-            android:textSize="14sp" />
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginBottom="32dp">
+
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:indeterminateTint="@color/white" />
+
+            <TextView
+                android:id="@+id/loading_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Loading..."
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:alpha="0.8" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Bottom Text -->
+    <!-- Version Info at Bottom -->
     <TextView
+        android:id="@+id/version_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
-        android:text="शुभ दीपावली"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp"
+        android:text="Version 1.0"
         android:textColor="@color/white"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:fontFamily="serif" />
+        android:textSize="12sp"
+        android:alpha="0.7" />
 
-</LinearLayout>
+</RelativeLayout>

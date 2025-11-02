@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/wp_base_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Base URL (e.g., https://example.com)"
+            android:inputType="textUri" />
+
+        <EditText
+            android:id="@+id/wp_consumer_key"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Consumer Key"
+            android:inputType="textPassword"
+            android:layout_marginTop="12dp" />
+
+        <EditText
+            android:id="@+id/wp_consumer_secret"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Consumer Secret"
+            android:inputType="textPassword"
+            android:layout_marginTop="12dp" />
+
+        <Button
+            android:id="@+id/wp_save_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+</ScrollView>

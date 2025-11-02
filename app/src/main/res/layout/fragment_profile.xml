@@ -26,12 +26,23 @@
                 android:textSize="16sp" />
 
             <TextView
+                android:id="@+id/profile_user_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Farmer"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold" />
+                
+            <TextView
+                android:id="@+id/profile_user_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:alpha="0.9"
+                android:layout_marginTop="4dp" />
         </LinearLayout>
 
         <!-- Menu Items -->

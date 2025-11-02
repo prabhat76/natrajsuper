@@ -34,12 +34,11 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="🚜 Natraj Super"
+                    android:text="Natraj Super"
                     android:textColor="@color/white"
-                    android:textSize="@dimen/text_size_heading"
+                    android:textSize="20sp"
                     android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                    android:letterSpacing="0.05" />
+                    android:fontFamily="sans-serif-medium" />
 
                 <!-- Search Icon -->
                 <ImageView
@@ -85,13 +84,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_medium"
-                android:text="🌾 Premium Agricultural Equipment ⚡"
+                android:text="Premium Agricultural Equipment"
                 android:textColor="@color/accent_yellow"
-                android:textSize="@dimen/text_size_medium"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:gravity="center_vertical"
-                android:drawableEnd="@android:drawable/ic_menu_info_details"
-                android:drawableTint="@color/accent_yellow"
                 android:paddingVertical="4dp" />
         </LinearLayout>
 
@@ -154,15 +151,34 @@
             android:background="@color/white"
             android:layout_marginTop="@dimen/margin_small">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="🔧 Shop by Categories"
-                android:textColor="@color/text_primary"
-                android:textSize="@dimen/text_size_title"
-                android:textStyle="bold"
-                android:drawableStart="@android:drawable/ic_menu_view"
-                android:drawablePadding="@dimen/margin_small" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Shop by Categories"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:drawableStart="@android:drawable/ic_menu_view"
+                    android:drawablePadding="8dp" />
+
+                <TextView
+                    android:id="@+id/view_all_categories"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="View All →"
+                    android:textColor="@color/primary"
+                    android:textSize="@dimen/text_size_medium"
+                    android:textStyle="bold"
+                    android:background="?attr/selectableItemBackground"
+                    android:padding="@dimen/padding_small" />
+            </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/categories_recycler"
@@ -233,12 +249,12 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="⭐ Featured Products"
+                    android:text="Festival Special Offers"
                     android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_size_title"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     android:drawableStart="@android:drawable/btn_star_big_on"
-                    android:drawablePadding="@dimen/margin_small" />
+                    android:drawablePadding="8dp" />
 
                 <TextView
                     android:id="@+id/view_all_products"
@@ -281,12 +297,12 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="🛒 Recommended for You"
+                    android:text="Featured Products"
                     android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_size_title"
+                    android:textSize="16sp"
                     android:textStyle="bold"
-                    android:drawableStart="@android:drawable/ic_menu_gallery"
-                    android:drawablePadding="@dimen/margin_small" />
+                    android:drawableStart="@android:drawable/btn_star_big_on"
+                    android:drawablePadding="8dp" />
 
                 <TextView
                     android:id="@+id/view_all_recommended"
@@ -329,9 +345,9 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="📰 Latest Articles"
+                    android:text="Latest Articles"
                     android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_size_title"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -374,7 +390,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="📘 View Full Catalogue\nBrowse All Products"
+                    android:text="View Full Catalogue\nBrowse All Products"
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -411,7 +427,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="📱 Order on WhatsApp\nGet Special Discount!"
+                    android:text="Order on WhatsApp\nGet Special Discount!"
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     android:textStyle="bold" />
