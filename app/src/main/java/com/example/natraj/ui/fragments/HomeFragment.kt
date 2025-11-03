@@ -21,6 +21,7 @@ import com.example.natraj.data.WooRepository
 import com.example.natraj.data.woo.FilterParams
 import com.example.natraj.data.woo.WooClient
 import com.example.natraj.data.woo.WooPrefs
+import com.example.natraj.util.CustomToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -82,13 +83,39 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupBanners() {
-        val banners = listOf(
-            Banner(1, "Festival Sale", "UP TO 50% OFF", "On all agricultural equipment", "", "Shop Now"),
-            Banner(2, "Premium Tools", "FREE DELIVERY", "On orders above ₹2000", "", "Order Now"),
-            Banner(3, "Quality Assured", "BEST PRICES", "Guaranteed authentic products", "", "Explore")
-        )
-        bannerViewPager.adapter = BannerAdapter(banners) { banner ->
-            showToast("Clicked: ${banner.title}")
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val repo = com.example.natraj.data.WpRepository(requireContext())
+                val banners = withContext(Dispatchers.IO) { repo.getBanners() }
+                
+                val bannersToUse = if (banners.isEmpty()) {
+                    listOf(
+                        Banner(1, "Festival Sale", "UP TO 50% OFF", "On all agricultural equipment", "", "Shop Now"),
+                        Banner(2, "Premium Tools", "FREE DELIVERY", "On orders above ₹2000", "", "Order Now"),
+                        Banner(3, "Quality Assured", "BEST PRICES", "Guaranteed authentic products", "", "Explore")
+                    )
+                } else banners
+                
+                bannerViewPager.adapter = BannerAdapter(bannersToUse) { banner ->
+                    navigateToProducts()
+                    CustomToast.showSuccess(requireContext(), "${banner.title} - ${banner.subtitle}")
+                }
+                
+                if (banners.isNotEmpty()) {
+                    android.util.Log.d("HomeFragment", "Loaded ${banners.size} banners from WordPress")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HomeFragment", "Banner fetch failed: ${e.message}", e)
+                val fallbackBanners = listOf(
+                    Banner(1, "Festival Sale", "UP TO 50% OFF", "On all agricultural equipment", "", "Shop Now"),
+                    Banner(2, "Premium Tools", "FREE DELIVERY", "On orders above ₹2000", "", "Order Now"),
+                    Banner(3, "Quality Assured", "BEST PRICES", "Guaranteed authentic products", "", "Explore")
+                )
+                bannerViewPager.adapter = BannerAdapter(fallbackBanners) { banner ->
+                    navigateToProducts()
+                    CustomToast.showError(requireContext(), "Failed to load banner data")
+                }
+            }
         }
     }
 
@@ -139,12 +166,37 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupOffers() {
-        val offers = OfferManager.getAllOffers()
         offersRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         offersRecycler.setItemViewCacheSize(10)
-        offersRecycler.adapter = OfferAdapter(offers) { offer ->
-            // Open product detail or web page
-            showToast("Offer: ${offer.title}")
+        
+        // Fetch offer banners dynamically from WordPress
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val repo = com.example.natraj.data.WpRepository(requireContext())
+                val offerBanners = withContext(Dispatchers.IO) { repo.getOfferBanners() }
+                
+                if (offerBanners.isEmpty()) {
+                    // Fallback to OfferManager if no banners found
+                    android.util.Log.w("HomeFragment", "No offer banners from WordPress, using fallback")
+                    val offers = OfferManager.getAllOffers()
+                    offersRecycler.adapter = OfferAdapter(offers) { offer ->
+                        showToast("Offer: ${offer.title}")
+                    }
+                } else {
+                    // Use BannerAdapter to display offer banners
+                    offersRecycler.adapter = BannerAdapter(offerBanners) { banner ->
+                        showToast("${banner.title}: ${banner.subtitle}")
+                    }
+                    android.util.Log.d("HomeFragment", "Loaded ${offerBanners.size} offer banners from WordPress")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HomeFragment", "Offer banners fetch failed: ${e.message}", e)
+                // Fallback to local offers
+                val offers = OfferManager.getAllOffers()
+                offersRecycler.adapter = OfferAdapter(offers) { offer ->
+                    showToast("Offer: ${offer.title}")
+                }
+            }
         }
     }
 
@@ -340,6 +392,15 @@ class HomeFragment : Fragment() {
 
     private fun showToast(message: String) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun navigateToProducts() {
+        try {
+            val intent = Intent(requireContext(), AllProductsActivity::class.java)
+            startActivity(intent)
+        } catch (e: Exception) {
+            CustomToast.showError(requireContext(), "Error opening products")
+        }
     }
     
     private fun fetchProductsByWooCategory(categoryId: Int?, label: String) {
