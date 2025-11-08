@@ -21,7 +21,7 @@
         <ImageView
             android:id="@+id/blog_image"
             android:layout_width="match_parent"
-            android:layout_height="180dp"
+            android:layout_height="380dp"
             android:scaleType="centerCrop"
             android:contentDescription="Blog post image"
             tools:src="@drawable/natraj_logo_official" />

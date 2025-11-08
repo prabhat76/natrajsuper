@@ -12,7 +12,10 @@
         android:layout_height="wrap_content"
         android:background="@color/primary"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="35dp"
+        android:paddingBottom="10dp"
         android:gravity="center_vertical"
         android:elevation="4dp">
 
@@ -77,9 +80,9 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|center_horizontal"
                     android:layout_marginBottom="12dp"
+                    android:background="#80000000"
                     android:orientation="horizontal"
-                    android:padding="8dp"
-                    android:background="#80000000" />
+                    android:padding="8dp" />
 
                 <!-- Wishlist Button -->
                 <ImageView
