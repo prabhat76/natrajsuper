@@ -59,7 +59,9 @@ class CartFragment : Fragment() {
 
         checkoutBtn.setOnClickListener {
             if (CartManager.getItems().isEmpty()) {
-                Toast.makeText(requireContext(), "Cart is empty", Toast.LENGTH_SHORT).show()
+                if (isAdded && context != null) {
+                    Toast.makeText(requireContext(), "Cart is empty", Toast.LENGTH_SHORT).show()
+                }
                 return@setOnClickListener
             }
             

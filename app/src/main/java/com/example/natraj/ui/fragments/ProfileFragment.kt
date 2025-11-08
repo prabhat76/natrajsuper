@@ -46,7 +46,9 @@ class ProfileFragment : Fragment() {
 
         wishlistSection.setOnClickListener {
             if (AuthManager.isLoggedIn()) {
-                Toast.makeText(requireContext(), "Wishlist feature coming soon!", Toast.LENGTH_SHORT).show()
+                if (isAdded && context != null) {
+                    Toast.makeText(requireContext(), "Wishlist feature coming soon!", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 showLoginPrompt()
             }
@@ -54,7 +56,9 @@ class ProfileFragment : Fragment() {
 
         addressSection.setOnClickListener {
             if (AuthManager.isLoggedIn()) {
-                Toast.makeText(requireContext(), "Address management coming soon!", Toast.LENGTH_SHORT).show()
+                if (isAdded && context != null) {
+                    Toast.makeText(requireContext(), "Address management coming soon!", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 showLoginPrompt()
             }
@@ -124,7 +128,9 @@ class ProfileFragment : Fragment() {
     
     private fun performLogout() {
         AuthManager.logout()
-        Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
+        if (isAdded && context != null) {
+            Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
+        }
         
         // Navigate to login screen
         val intent = Intent(requireContext(), LoginActivity::class.java)
