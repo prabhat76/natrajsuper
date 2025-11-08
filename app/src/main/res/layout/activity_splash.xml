@@ -18,7 +18,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:layout_marginTop="120dp">
 
             <!-- Logo Container with White Background and Shadow -->
             <androidx.cardview.widget.CardView

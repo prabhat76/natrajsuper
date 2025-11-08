@@ -19,7 +19,10 @@
             android:layout_height="wrap_content"
             android:background="@color/primary"
             android:orientation="vertical"
-            android:padding="@dimen/padding_medium"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="35dp"
+            android:paddingBottom="10dp"
             android:elevation="4dp">
 
             <!-- Top Bar -->
@@ -36,15 +39,15 @@
                     android:layout_weight="1"
                     android:text="Natraj Super"
                     android:textColor="@color/white"
-                    android:textSize="20sp"
+                    android:textSize="22sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-medium" />
 
                 <!-- Search Icon -->
                 <ImageView
                     android:id="@+id/search_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:layout_marginEnd="@dimen/margin_medium"
                     android:src="@drawable/ic_search"
                     android:tint="@color/white"
@@ -58,8 +61,8 @@
 
                     <ImageView
                         android:id="@+id/cart_icon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
                         android:src="@drawable/ic_cart"
                         android:tint="@color/white"
                         android:background="?attr/selectableItemBackgroundBorderless"
@@ -67,8 +70,8 @@
 
                     <TextView
                         android:id="@+id/cart_badge"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
+                        android:layout_width="13dp"
+                        android:layout_height="13dp"
                         android:layout_gravity="top|end"
                         android:background="@drawable/bg_discount"
                         android:gravity="center"
@@ -83,7 +86,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_medium"
+                android:layout_marginTop="5dp"
                 android:text="Premium Agricultural Equipment"
                 android:textColor="@color/accent_yellow"
                 android:textSize="14sp"
@@ -166,18 +169,21 @@
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:drawableStart="@android:drawable/ic_menu_view"
-                    android:drawablePadding="8dp" />
+                    android:drawablePadding="8dp"
+                    android:gravity="center_vertical" />
 
                 <TextView
                     android:id="@+id/view_all_categories"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="View All →"
+                    android:text="View All"
                     android:textColor="@color/primary"
                     android:textSize="@dimen/text_size_medium"
                     android:textStyle="bold"
                     android:background="?attr/selectableItemBackground"
-                    android:padding="@dimen/padding_small" />
+                    android:padding="@dimen/padding_small"
+
+                    />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -195,7 +201,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -254,13 +261,14 @@
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:drawableStart="@android:drawable/btn_star_big_on"
-                    android:drawablePadding="8dp" />
+                    android:drawablePadding="8dp"
+                    android:gravity="center_vertical"/>
 
                 <TextView
                     android:id="@+id/view_all_products"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="View All →"
+                    android:text="View All"
                     android:textColor="@color/primary"
                     android:textSize="@dimen/text_size_medium"
                     android:textStyle="bold"
@@ -302,13 +310,14 @@
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:drawableStart="@android:drawable/btn_star_big_on"
-                    android:drawablePadding="8dp" />
+                    android:drawablePadding="8dp"
+                    android:gravity="center_vertical"/>
 
                 <TextView
                     android:id="@+id/view_all_recommended"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="View All →"
+                    android:text="View All"
                     android:textColor="@color/primary"
                     android:textSize="@dimen/text_size_medium"
                     android:textStyle="bold"
@@ -354,7 +363,7 @@
                     android:id="@+id/view_all_blog"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="View All →"
+                    android:text="View All"
                     android:textColor="@color/primary"
                     android:textSize="@dimen/text_size_medium"
                     android:textStyle="bold" />
@@ -400,7 +409,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Open Catalogue"
-                    android:textColor="@color/primary_color"
+                    android:textColor="@android:color/white"
                     android:background="@color/white"
                     android:layout_marginStart="16dp" />
             </LinearLayout>
