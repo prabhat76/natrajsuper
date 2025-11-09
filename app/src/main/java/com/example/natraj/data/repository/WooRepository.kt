@@ -7,10 +7,23 @@ import com.example.natraj.data.woo.*
 
 class WooRepository(private val context: Context) {
     private val api by lazy { WooClient.api(context) }
+    
+    // Memory cache for categories and products (5 minutes TTL)
+    private var categoriesCache: Pair<Long, List<Category>>? = null
+    private val productCache = mutableMapOf<String, Pair<Long, List<Product>>>()
+    private val cacheTimeout = 5 * 60 * 1000L // 5 minutes
 
     suspend fun getCategories(): List<Category> {
+        // Check cache first
+        categoriesCache?.let { (timestamp, categories) ->
+            if (System.currentTimeMillis() - timestamp < cacheTimeout) {
+                return categories
+            }
+        }
+        
+        // Fetch from API
         val list = api.getCategories(perPage = 100, hideEmpty = false)
-        return list.map { wc ->
+        val categories = list.map { wc ->
             Category(
                 id = wc.id,
                 name = wc.name,
@@ -19,9 +32,24 @@ class WooRepository(private val context: Context) {
                 productCount = wc.count ?: 0
             )
         }
+        
+        // Update cache
+        categoriesCache = System.currentTimeMillis() to categories
+        return categories
     }
 
     suspend fun getProducts(params: FilterParams, featured: Boolean? = null): List<Product> {
+        // Create cache key
+        val cacheKey = "${params.categoryId}_${params.page}_${params.perPage}_$featured"
+        
+        // Check cache
+        productCache[cacheKey]?.let { (timestamp, products) ->
+            if (System.currentTimeMillis() - timestamp < cacheTimeout) {
+                return products
+            }
+        }
+        
+        // Fetch from API
         val items = api.getProducts(
             perPage = params.perPage,
             page = params.page,
@@ -32,7 +60,17 @@ class WooRepository(private val context: Context) {
             attributeTerm = params.attributeTerm,
             featured = featured
         )
-        return items.map { mapProduct(it) }
+        val products = items.map { mapProduct(it) }
+        
+        // Update cache
+        productCache[cacheKey] = System.currentTimeMillis() to products
+        return products
+    }
+    
+    // Method to clear cache when needed
+    fun clearCache() {
+        categoriesCache = null
+        productCache.clear()
     }
 
     suspend fun getAttributes(): List<WooAttribute> = api.getAttributes()
@@ -45,7 +83,9 @@ class WooRepository(private val context: Context) {
         lineItems: List<WooOrderLineItem>,
         paymentMethod: String = "cod",
         paymentTitle: String = "Cash on Delivery",
-        setPaid: Boolean = false
+        setPaid: Boolean = false,
+        customerNote: String? = null,
+        metaData: List<WooMetaData>? = null
     ): WooOrderResponse {
         val body = WooCreateOrderRequest(
             payment_method = paymentMethod,
@@ -53,9 +93,37 @@ class WooRepository(private val context: Context) {
             set_paid = setPaid,
             billing = billing,
             shipping = shipping,
-            line_items = lineItems
+            line_items = lineItems,
+            customer_note = customerNote,
+            meta_data = metaData
         )
         return api.createOrder(body)
+    }
+    
+    suspend fun getOrder(orderId: Int): WooOrderResponse {
+        return api.getOrder(orderId)
+    }
+    
+    suspend fun getOrders(
+        perPage: Int = 20,
+        page: Int = 1,
+        customerId: Int? = null,
+        status: String? = null
+    ): List<WooOrderResponse> {
+        return api.getOrders(
+            perPage = perPage,
+            page = page,
+            customerId = customerId,
+            status = status
+        )
+    }
+    
+    suspend fun updateOrder(orderId: Int, updates: Map<String, Any>): WooOrderResponse {
+        return api.updateOrder(orderId, updates)
+    }
+    
+    suspend fun getPaymentGateways(): List<WooPaymentGateway> {
+        return api.getPaymentGateways()
     }
 
     private fun mapProduct(p: WooProduct): Product {

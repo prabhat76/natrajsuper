@@ -318,6 +318,14 @@
         </androidx.cardview.widget.CardView>
 
         <!-- Place Order Button -->
+        <ProgressBar
+            android:id="@+id/quick_checkout_progress_bar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:layout_margin="16dp"
+            android:visibility="gone" />
+        
         <Button
             android:id="@+id/place_order_button"
             android:layout_width="match_parent"

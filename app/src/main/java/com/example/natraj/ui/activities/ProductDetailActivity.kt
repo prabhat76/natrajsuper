@@ -3,6 +3,7 @@ package com.example.natraj
 import android.content.Intent
 import android.graphics.Paint
 import android.os.Bundle
+import android.text.Html
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
@@ -10,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.text.HtmlCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 
@@ -61,10 +63,14 @@ class ProductDetailActivity : AppCompatActivity() {
         val displayPrice = if (product.transferPrice > 0) product.transferPrice else product.price
         price.text = "₹${displayPrice.toInt()}"
         
-        description.text = if (!product.description.isNullOrEmpty()) {
-            product.description
+        // Render HTML description properly
+        if (!product.description.isNullOrEmpty()) {
+            description.text = HtmlCompat.fromHtml(
+                product.description,
+                HtmlCompat.FROM_HTML_MODE_LEGACY
+            )
         } else {
-            "High quality ${product.brand ?: "Natraj Super"} product. ${product.articleCode ?: ""}"
+            description.text = "No description available"
         }
 
         // Show MRP vs Transfer Price for better discount display

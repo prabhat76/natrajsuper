@@ -12,7 +12,7 @@ import com.example.natraj.data.wp.WpUser as WpApiUser
 import com.example.natraj.data.wp.WpMediaItem as WpApiMediaItem
 
 class WpRepository(private val context: Context) {
-    private val api by lazy { WpClient.api(context) }
+    val api by lazy { WpClient.api(context) }
 
     suspend fun getRecentPosts(limit: Int = 5): List<BlogPost> {
         val posts = api.getPosts(perPage = limit)

@@ -4,16 +4,19 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.natraj.util.CustomToast
 
 class GridProductAdapter(
     private val products: List<Product>,
     private val onProductClick: (Product) -> Unit = {},
-    private val onFavoriteClick: (Product) -> Unit = {}
+    private val onFavoriteClick: (Product) -> Unit = {},
+    private val onAddToCart: (Product) -> Unit = {}
 ) : RecyclerView.Adapter<GridProductAdapter.GridProductViewHolder>() {
 
     inner class GridProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -21,11 +24,15 @@ class GridProductAdapter(
         val productName: TextView = itemView.findViewById(R.id.product_name)
         val currentPrice: TextView = itemView.findViewById(R.id.current_price)
         val originalPrice: TextView = itemView.findViewById(R.id.original_price)
-        val discountPercent: TextView = itemView.findViewById(R.id.discount_percent)
+        val discountBadge: TextView = itemView.findViewById(R.id.discount_badge)
         val discountText: TextView = itemView.findViewById(R.id.discount_text)
         val ratingText: TextView = itemView.findViewById(R.id.rating_text)
-        val deliveryInfo: TextView = itemView.findViewById(R.id.delivery_info)
+        val ratingContainer: View = itemView.findViewById(R.id.rating_container)
+        val stockStatus: TextView = itemView.findViewById(R.id.stock_status)
+        val newBadge: TextView = itemView.findViewById(R.id.new_badge)
         val wishlistIcon: ImageView = itemView.findViewById(R.id.wishlist_icon)
+        val addToCartButton: Button = itemView.findViewById(R.id.add_to_cart_button)
+        val discountLayout: View = itemView.findViewById(R.id.discount_layout)
 
         fun bind(product: Product) {
             productName.text = product.name
@@ -33,7 +40,23 @@ class GridProductAdapter(
             // Show transfer price if available, otherwise regular price
             val displayPrice = if (product.transferPrice > 0) product.transferPrice else product.price
             currentPrice.text = "₹${String.format("%,d", displayPrice.toInt())}"
-            ratingText.text = String.format("%.1f", product.rating)
+            
+            // Rating
+            if (product.rating > 0) {
+                ratingText.text = String.format("%.1f", product.rating)
+                ratingContainer.visibility = View.VISIBLE
+            } else {
+                ratingContainer.visibility = View.GONE
+            }
+
+            // Stock status
+            stockStatus.text = if (product.inventory > 0) "In stock" else "Out of stock"
+            stockStatus.setTextColor(
+                if (product.inventory > 0) 
+                    itemView.context.getColor(R.color.stock_green)
+                else
+                    itemView.context.getColor(R.color.discount_badge_red)
+            )
 
             // Handle MRP vs Transfer Price or Original Price
             val comparePrice = if (product.mrp > 0 && product.mrp > displayPrice) {
@@ -45,23 +68,21 @@ class GridProductAdapter(
             }
             
             if (comparePrice > displayPrice) {
-                originalPrice.visibility = View.VISIBLE
+                discountLayout.visibility = View.VISIBLE
                 originalPrice.text = "₹${String.format("%,d", comparePrice.toInt())}"
                 originalPrice.paintFlags = originalPrice.paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
                 
-                discountPercent.visibility = View.VISIBLE
-                discountText.visibility = View.VISIBLE
                 val discount = ((comparePrice - displayPrice) / comparePrice * 100).toInt()
-                discountPercent.text = "${discount}% off"
-                discountText.text = "${discount}% off"
+                discountBadge.visibility = View.VISIBLE
+                discountBadge.text = "-${discount}%"
+                discountText.text = "${discount}% OFF"
             } else {
-                originalPrice.visibility = View.GONE
-                discountPercent.visibility = View.GONE
-                discountText.visibility = View.GONE
+                discountLayout.visibility = View.GONE
+                discountBadge.visibility = View.GONE
             }
 
-            // Delivery info - Free delivery for orders above ₹2000
-            deliveryInfo.text = if (displayPrice >= 2000) "Free delivery" else "Delivery ₹40"
+            // NEW badge - show for products added in last 30 days (if you have creation date)
+            newBadge.visibility = View.GONE // Can be enabled based on product.createdDate
             
             // Wishlist state
             updateWishlistIcon(product.id)
@@ -111,8 +132,34 @@ class GridProductAdapter(
                     .start()
                 
                 val message = if (added) "Added to wishlist" else "Removed from wishlist"
-                Toast.makeText(itemView.context, message, Toast.LENGTH_SHORT).show()
+                CustomToast.showInfo(itemView.context, message)
                 onFavoriteClick(product)
+            }
+
+            // Add to Cart button
+            addToCartButton.setOnClickListener {
+                if (product.inventory > 0) {
+                    CartManager.add(product)
+                    
+                    // Animate button
+                    it.animate()
+                        .scaleX(0.9f)
+                        .scaleY(0.9f)
+                        .setDuration(100)
+                        .withEndAction {
+                            it.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(100)
+                                .start()
+                        }
+                        .start()
+                    
+                    CustomToast.showSuccess(itemView.context, "Added to cart")
+                    onAddToCart(product)
+                } else {
+                    CustomToast.showError(itemView.context, "Product out of stock")
+                }
             }
         }
         

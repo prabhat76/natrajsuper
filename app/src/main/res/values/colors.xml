@@ -15,9 +15,33 @@
     <color name="light_blue">#E3F2FD</color>
     <color name="buy_now_orange">#FF9800</color>
     
+    <!-- Agricultural Green Theme (Website Colors) -->
+    <color name="agricultural_green">#4CAF50</color>
+    <color name="agricultural_green_dark">#388E3C</color>
+    <color name="agricultural_orange">#FF6F00</color>
+    <color name="agricultural_orange_light">#FFB74D</color>
+    <color name="discount_badge_red">#E53935</color>
+    <color name="add_to_cart_green">#66BB6A</color>
+    <color name="stock_green">#43A047</color>
+    
     <!-- Custom Toast Colors -->
     <color name="success_green">#4CAF50</color>
+    <color name="success_green_dark">#2E7D32</color>
     <color name="error_red">#F44336</color>
+    <color name="error_red_dark">#C62828</color>
+    <color name="warning_orange">#FF9800</color>
+    <color name="warning_orange_dark">#E65100</color>
+    <color name="info_blue">#2196F3</color>
+    <color name="info_blue_dark">#1565C0</color>
+    
+    <!-- Status Colors -->
+    <color name="status_pending">#FFA726</color>
+    <color name="status_processing">#42A5F5</color>
+    <color name="status_completed">#66BB6A</color>
+    <color name="status_cancelled">#EF5350</color>
+    <color name="status_refunded">#AB47BC</color>
+    <color name="status_failed">#E53935</color>
+    <color name="status_on_hold">#FDD835</color>
     
     <!-- Main Theme Colors -->
     <color name="primary">#2874F0</color>

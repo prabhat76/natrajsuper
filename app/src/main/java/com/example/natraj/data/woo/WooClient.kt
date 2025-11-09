@@ -1,6 +1,8 @@
 package com.example.natraj.data.woo
 
 import android.content.Context
+import okhttp3.Cache
+import okhttp3.CacheControl
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -8,9 +10,12 @@ import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
+import java.util.concurrent.TimeUnit
 
 object WooClient {
     @Volatile private var retrofit: Retrofit? = null
+    @Volatile private var cachedClient: OkHttpClient? = null
 
     fun api(context: Context): WooApi {
         val prefs = WooPrefs(context)
@@ -32,14 +37,44 @@ object WooClient {
             chain.proceed(request)
         }
 
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
+        // Cache interceptor - cache GET requests for 5 minutes
+        val cacheInterceptor = Interceptor { chain ->
+            val request = chain.request()
+            val response = chain.proceed(request)
+            
+            // Cache only GET requests
+            if (request.method == "GET") {
+                val cacheControl = CacheControl.Builder()
+                    .maxAge(5, TimeUnit.MINUTES) // Cache for 5 minutes
+                    .build()
+                response.newBuilder()
+                    .header("Cache-Control", cacheControl.toString())
+                    .removeHeader("Pragma")
+                    .build()
+            } else {
+                response
+            }
         }
 
-        val client = OkHttpClient.Builder()
+        val logging = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY // Changed to BODY to see error details
+        }
+
+        // Create cache directory (10 MB)
+        val cacheDir = File(context.cacheDir, "http_cache")
+        val cache = Cache(cacheDir, 10L * 1024 * 1024) // 10 MB
+
+        val client = cachedClient ?: OkHttpClient.Builder()
+            .cache(cache)
             .addInterceptor(authInterceptor)
+            .addNetworkInterceptor(cacheInterceptor)
             .addInterceptor(logging)
+            .connectTimeout(15, TimeUnit.SECONDS) // Faster timeout
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(20, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
             .build()
+            .also { cachedClient = it }
 
         val r = retrofit ?: Retrofit.Builder()
             .baseUrl(ensureTrailingSlash(baseUrl))

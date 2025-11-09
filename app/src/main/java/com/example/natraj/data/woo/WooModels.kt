@@ -75,14 +75,52 @@ data class WooCreateOrderRequest(
     val set_paid: Boolean = false,
     val billing: WooBilling,
     val shipping: WooShipping,
-    val line_items: List<WooOrderLineItem>
+    val line_items: List<WooOrderLineItem>,
+    val customer_note: String? = null,
+    val meta_data: List<WooMetaData>? = null
+)
+
+data class WooMetaData(
+    val key: String,
+    val value: String
 )
 
 data class WooOrderResponse(
     val id: Int,
     val number: String,
     val status: String,
-    val total: String
+    val total: String,
+    val date_created: String? = null,
+    val payment_method: String? = null,
+    val payment_method_title: String? = null,
+    val tracking_number: String? = null,
+    val tracking_provider: String? = null,
+    val meta_data: List<WooMetaData>? = null,
+    val line_items: List<WooOrderLineItem>? = null
+)
+
+// Payment Gateway
+data class WooPaymentGateway(
+    val id: String,
+    val title: String,
+    val description: String,
+    val enabled: Boolean,
+    val method_title: String? = null,
+    val settings: Map<String, Any>? = null
+)
+
+// Shipping Zone
+data class WooShippingZone(
+    val id: Int,
+    val name: String,
+    val order: Int
+)
+
+data class WooShippingMethod(
+    val id: String,
+    val title: String,
+    val enabled: Boolean,
+    val settings: Map<String, Any>? = null
 )
 
 // Filter params helper

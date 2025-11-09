@@ -1,7 +1,9 @@
 package com.example.natraj.data.wp
 
 import com.google.gson.annotations.SerializedName
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 data class WpRendered(val rendered: String)
@@ -61,6 +63,35 @@ data class WpUser(
     @SerializedName("avatar_urls") val avatarUrls: Map<String, String>?
 )
 
+// Authentication models
+data class WpLoginRequest(
+    val username: String,
+    val password: String
+)
+
+data class WpLoginResponse(
+    val token: String,
+    @SerializedName("user_email") val userEmail: String,
+    @SerializedName("user_nicename") val userNicename: String,
+    @SerializedName("user_display_name") val userDisplayName: String
+)
+
+data class WpRegisterRequest(
+    val username: String,
+    val email: String,
+    val password: String,
+    @SerializedName("first_name") val firstName: String? = null,
+    @SerializedName("last_name") val lastName: String? = null
+)
+
+data class WpRegisterResponse(
+    val id: Int,
+    val username: String,
+    val email: String,
+    @SerializedName("first_name") val firstName: String?,
+    @SerializedName("last_name") val lastName: String?
+)
+
 interface WpApi {
     @GET("wp-json/wp/v2/posts")
     suspend fun getPosts(
@@ -99,4 +130,11 @@ interface WpApi {
         @Query("per_page") perPage: Int = 10,
         @Query("page") page: Int = 1
     ): List<WpUser>
+    
+    // Authentication endpoints (requires JWT Auth plugin)
+    @POST("wp-json/jwt-auth/v1/token")
+    suspend fun login(@Body request: WpLoginRequest): WpLoginResponse
+    
+    @POST("wp-json/wp/v2/users/register")
+    suspend fun register(@Body request: WpRegisterRequest): WpRegisterResponse
 }

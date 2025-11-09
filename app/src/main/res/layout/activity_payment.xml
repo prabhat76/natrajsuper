@@ -213,28 +213,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp">
-
-                <RadioButton
-                    android:id="@+id/payment_cash"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Cash on Delivery (COD)"
-                    android:padding="12dp"
-                    android:checked="true" />
-
-                <RadioButton
-                    android:id="@+id/payment_upi"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="UPI (GPay, PhonePe, Paytm)"
-                    android:padding="12dp" />
-
-                <RadioButton
-                    android:id="@+id/payment_card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Credit / Debit Card"
-                    android:padding="12dp" />
+                <!-- Payment options will be loaded dynamically from WooCommerce -->
             </RadioGroup>
         </LinearLayout>
 
@@ -250,6 +229,15 @@
             android:textSize="15sp"
             android:textStyle="bold"
             android:letterSpacing="0.05" />
+            
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/payment_progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone" />
 
     </LinearLayout>
 

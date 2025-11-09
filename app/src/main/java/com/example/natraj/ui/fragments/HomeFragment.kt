@@ -1,8 +1,10 @@
 package com.example.natraj
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +13,8 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -25,6 +29,7 @@ import com.example.natraj.util.CustomToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class HomeFragment : Fragment() {
 
@@ -35,6 +40,7 @@ class HomeFragment : Fragment() {
     private lateinit var recommendedProductsRecycler: RecyclerView
     private lateinit var blogRecycler: RecyclerView
     private lateinit var searchBar: EditText
+    private lateinit var searchIcon: ImageView
     private lateinit var cartIcon: ImageView
     private lateinit var cartBadge: TextView
     private lateinit var whatsappOrderBtn: Button
@@ -44,6 +50,19 @@ class HomeFragment : Fragment() {
     private lateinit var viewAllRecommendedBtn: TextView
     private lateinit var viewAllBlogBtn: TextView
     private lateinit var viewAllCategoriesBtn: TextView
+    
+    private val voiceSearchLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val matches = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            if (!matches.isNullOrEmpty()) {
+                val searchText = matches[0]
+                searchBar.setText(searchText)
+                searchProducts(searchText)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,14 +70,15 @@ class HomeFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
         
-    initializeViews(view)
-    setupBanners()
-    setupCategories()
-    setupOffers()
-    setupProducts()
-    setupRecommendedProducts()
-    setupBlog()
-    setupClickListeners()
+        initializeViews(view)
+        setupSearchBar()
+        setupBanners()
+        setupCategories()
+        setupOffers()
+        setupProducts()
+        setupRecommendedProducts()
+        setupBlog()
+        setupClickListeners()
 
         return view
     }
@@ -71,6 +91,7 @@ class HomeFragment : Fragment() {
         recommendedProductsRecycler = view.findViewById(R.id.recommended_products_recycler)
         blogRecycler = view.findViewById(R.id.blog_recycler)
         searchBar = view.findViewById(R.id.search_bar)
+        searchIcon = view.findViewById(R.id.search_icon)
         cartIcon = view.findViewById(R.id.cart_icon)
         cartBadge = view.findViewById(R.id.cart_badge)
         whatsappOrderBtn = view.findViewById(R.id.whatsapp_order_btn)
@@ -81,6 +102,47 @@ class HomeFragment : Fragment() {
         viewAllBlogBtn = view.findViewById(R.id.view_all_blog)
         viewAllCategoriesBtn = view.findViewById(R.id.view_all_categories)
     }
+    
+    private fun setupSearchBar() {
+        // Voice search on icon click
+        searchIcon.setOnClickListener {
+            startVoiceSearch()
+        }
+        
+        // Text search
+        searchBar.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                val query = searchBar.text.toString()
+                if (query.isNotBlank()) {
+                    searchProducts(query)
+                }
+                true
+            } else {
+                false
+            }
+        }
+    }
+    
+    private fun startVoiceSearch() {
+        try {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Say product name or category...")
+            }
+            voiceSearchLauncher.launch(intent)
+        } catch (e: Exception) {
+            if (isAdded && context != null) {
+                Toast.makeText(requireContext(), "Voice search not available", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    private fun searchProducts(query: String) {
+        val intent = Intent(requireContext(), AllProductsActivity::class.java)
+        intent.putExtra("extra_search_query", query)
+        startActivity(intent)
+    }
 
     private fun setupBanners() {
         viewLifecycleOwner.lifecycleScope.launch {
@@ -88,33 +150,18 @@ class HomeFragment : Fragment() {
                 val repo = com.example.natraj.data.WpRepository(requireContext())
                 val banners = withContext(Dispatchers.IO) { repo.getBanners() }
                 
-                val bannersToUse = if (banners.isEmpty()) {
-                    listOf(
-                        Banner(1, "Festival Sale", "UP TO 50% OFF", "On all agricultural equipment", "", "Shop Now"),
-                        Banner(2, "Premium Tools", "FREE DELIVERY", "On orders above ₹2000", "", "Order Now"),
-                        Banner(3, "Quality Assured", "BEST PRICES", "Guaranteed authentic products", "", "Explore")
-                    )
-                } else banners
-                
-                bannerViewPager.adapter = BannerAdapter(bannersToUse) { banner ->
-                    navigateToProducts()
-                    CustomToast.showSuccess(requireContext(), "${banner.title} - ${banner.subtitle}")
-                }
-                
                 if (banners.isNotEmpty()) {
+                    bannerViewPager.adapter = BannerAdapter(banners) { banner ->
+                        navigateToProducts()
+                    }
                     android.util.Log.d("HomeFragment", "Loaded ${banners.size} banners from WordPress")
+                } else {
+                    android.util.Log.w("HomeFragment", "No banners found in WordPress")
+                    bannerViewPager.visibility = View.GONE
                 }
             } catch (e: Exception) {
                 android.util.Log.e("HomeFragment", "Banner fetch failed: ${e.message}", e)
-                val fallbackBanners = listOf(
-                    Banner(1, "Festival Sale", "UP TO 50% OFF", "On all agricultural equipment", "", "Shop Now"),
-                    Banner(2, "Premium Tools", "FREE DELIVERY", "On orders above ₹2000", "", "Order Now"),
-                    Banner(3, "Quality Assured", "BEST PRICES", "Guaranteed authentic products", "", "Explore")
-                )
-                bannerViewPager.adapter = BannerAdapter(fallbackBanners) { banner ->
-                    navigateToProducts()
-                    CustomToast.showError(requireContext(), "Failed to load banner data")
-                }
+                bannerViewPager.visibility = View.GONE
             }
         }
     }
@@ -148,11 +195,11 @@ class HomeFragment : Fragment() {
                     val allCategory = Category(0, "All", imageUrl = "", hasSpecialOffer = false)
                     val categories = listOf(allCategory) + list
                     categoriesRecycler.adapter = SimpleCategoryAdapter(categories) { category ->
-                        if (category.name == "All") {
-                            fetchProductsByWooCategory(null, "All")
-                        } else {
-                            fetchProductsByWooCategory(category.id, category.name)
-                        }
+                        // Navigate to AllProductsActivity with category filter
+                        val intent = Intent(requireContext(), AllProductsActivity::class.java)
+                        intent.putExtra("extra_category_id", category.id)
+                        intent.putExtra("extra_category_name", category.name)
+                        startActivity(intent)
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("HomeFragment", "Woo categories failed: ${e.message}", e)

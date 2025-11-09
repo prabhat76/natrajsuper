@@ -46,32 +46,46 @@
         app:cardCornerRadius="25dp"
         app:cardElevation="4dp">
 
-        <EditText
-            android:id="@+id/category_search_bar"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="@android:color/transparent"
-            android:drawableStart="@android:drawable/ic_menu_search"
-            android:drawablePadding="12dp"
-            android:hint="Search categories..."
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textColorHint="@color/text_hint" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <EditText
+                android:id="@+id/category_search_bar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:drawableStart="@android:drawable/ic_menu_search"
+                android:drawablePadding="12dp"
+                android:hint="Search categories..."
+                android:paddingStart="16dp"
+                android:paddingEnd="8dp"
+                android:textColorHint="@color/text_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1" />
+
+            <ImageView
+                android:id="@+id/voice_search_icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="8dp"
+                android:src="@android:drawable/ic_btn_speak_now"
+                android:contentDescription="Voice search"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="@color/primary" />
+        </LinearLayout>
     </androidx.cardview.widget.CardView>
 
     <!-- Categories Grid -->
-<!--    <androidx.recyclerview.widget.RecyclerView-->
-<!--        android:id="@+id/categories_grid_recycler"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"-->
-<!--        android:padding="8dp"-->
-<!--        android:clipToPadding="false" />-->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/categories_grid_recycler"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:padding="8dp"
+        android:padding="4dp"
         android:clipToPadding="false" />
 
 

@@ -56,46 +56,27 @@ class AllProductsActivity : AppCompatActivity() {
         val catName = intent.getStringExtra("extra_category_name")
         supportActionBar?.title = catName ?: "All Products"
 
-        if (canUseWoo) {
-            lifecycleScope.launch {
-                try {
-                    val repo = WooRepository(this@AllProductsActivity)
-                    val products = withContext(Dispatchers.IO) {
-                        repo.getProducts(FilterParams(categoryId = catId, perPage = 40))
-                    }
-                    if (products.isEmpty()) {
-                        Toast.makeText(this@AllProductsActivity, "No products found", Toast.LENGTH_LONG).show()
-                        return@launch
-                    }
-                    productsRecycler.adapter = GridProductAdapter(products) { product ->
-                        val intent = Intent(this@AllProductsActivity, ProductDetailActivity::class.java)
-                        intent.putExtra("product", product)
-                        startActivity(intent)
-                    }
-                    Toast.makeText(this@AllProductsActivity, "Showing ${products.size} products", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    android.util.Log.e("AllProductsActivity", "Woo fetch failed, fallback", e)
-                    loadFromAssetsFallback()
+        lifecycleScope.launch {
+            try {
+                val repo = WooRepository(this@AllProductsActivity)
+                val products = withContext(Dispatchers.IO) {
+                    repo.getProducts(FilterParams(categoryId = catId, perPage = 40))
                 }
+                if (products.isEmpty()) {
+                    Toast.makeText(this@AllProductsActivity, "No products found in this category", Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+                productsRecycler.adapter = GridProductAdapter(products) { product ->
+                    val intent = Intent(this@AllProductsActivity, ProductDetailActivity::class.java)
+                    intent.putExtra("product", product)
+                    startActivity(intent)
+                }
+                android.util.Log.d("AllProductsActivity", "Loaded ${products.size} products from WordPress")
+            } catch (e: Exception) {
+                android.util.Log.e("AllProductsActivity", "Failed to load products from WordPress: ${e.message}", e)
+                Toast.makeText(this@AllProductsActivity, "Unable to load products. Please check your connection.", Toast.LENGTH_LONG).show()
             }
-        } else {
-            loadFromAssetsFallback()
         }
-    }
-
-    private fun loadFromAssetsFallback() {
-        val catName = intent.getStringExtra("extra_category_name")
-        val products = if (catName.isNullOrBlank()) ProductManager.getAllProducts() else ProductManager.getProductsByCategory(catName)
-        if (products.isEmpty()) {
-            Toast.makeText(this, "No products found!", Toast.LENGTH_LONG).show()
-            return
-        }
-        productsRecycler.adapter = GridProductAdapter(products) { product ->
-            val intent = Intent(this, ProductDetailActivity::class.java)
-            intent.putExtra("product", product)
-            startActivity(intent)
-        }
-        Toast.makeText(this, "Showing ${products.size} products", Toast.LENGTH_SHORT).show()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

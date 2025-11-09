@@ -2,11 +2,20 @@ package com.example.natraj
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.lifecycleScope
+import com.example.natraj.data.WooRepository
+import com.example.natraj.data.woo.*
+import com.example.natraj.util.CustomToast
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class QuickCheckoutActivity : AppCompatActivity() {
 
@@ -34,10 +43,12 @@ class QuickCheckoutActivity : AppCompatActivity() {
     private lateinit var deliveryChargeText: TextView
     
     private lateinit var placeOrderButton: Button
+    private lateinit var progressBar: ProgressBar
     
     private var product: Product? = null
     private var quantity = 1
     private var deliveryCharge = 0.0
+    private val TAG = "QuickCheckoutActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +57,7 @@ class QuickCheckoutActivity : AppCompatActivity() {
         product = intent.getSerializableExtra("product") as? Product
         
         if (product == null) {
-            Toast.makeText(this, "Error loading product", Toast.LENGTH_SHORT).show()
+            CustomToast.showError(this, "Error loading product")
             finish()
             return
         }
@@ -79,6 +90,7 @@ class QuickCheckoutActivity : AppCompatActivity() {
         deliveryChargeText = findViewById(R.id.delivery_charge)
         
         placeOrderButton = findViewById(R.id.place_order_button)
+        progressBar = findViewById(R.id.quick_checkout_progress_bar)
     }
 
     private fun setupToolbar() {
@@ -170,40 +182,124 @@ class QuickCheckoutActivity : AppCompatActivity() {
     }
 
     private fun placeOrder() {
-        val paymentMethod = if (codRadio.isChecked) "Cash on Delivery" else "Online Payment"
-        val deliveryType = if (expressDelivery.isChecked) "Express (1-2 days)" else "Standard (3-5 days)"
+        Log.d(TAG, "=== Quick Checkout Order Placement Started ===")
         
-        val orderDetails = """
-            Order Confirmed! 🎉
-            
-            Product: ${product?.name}
-            Quantity: $quantity
-            Price: ₹${String.format("%.2f", product?.price!! * quantity)}
-            Delivery: $deliveryCharge (${if (deliveryCharge > 0) "₹$deliveryCharge" else "FREE"})
-            Total: ₹${String.format("%.2f", (product?.price!! * quantity) + deliveryCharge)}
-            
-            Delivery Type: $deliveryType
-            Payment: $paymentMethod
-            
-            Name: ${nameInput.text}
-            Phone: ${phoneInput.text}
-            Address: ${addressInput.text}, ${pincodeInput.text}
-        """.trimIndent()
+        if (!validateInputs()) {
+            return
+        }
+        
+        val paymentMethod = if (codRadio.isChecked) "cod" else "online"
+        val paymentTitle = if (codRadio.isChecked) "Cash on Delivery" else "Online Payment"
+        
+        // Show progress
+        progressBar?.visibility = View.VISIBLE
+        placeOrderButton.isEnabled = false
+        
+        val prefs = WooPrefs(this)
+        val hasWooConfig = !prefs.baseUrl.isNullOrBlank() && 
+                          !prefs.consumerKey.isNullOrBlank() && 
+                          !prefs.consumerSecret.isNullOrBlank()
 
-        // Show order confirmation
-        android.app.AlertDialog.Builder(this)
-            .setTitle("✅ Order Placed Successfully!")
-            .setMessage(orderDetails)
-            .setPositiveButton("Track Order") { _, _ ->
-                // Navigate to order tracking
-                Toast.makeText(this, "Order tracking feature coming soon!", Toast.LENGTH_SHORT).show()
+        if (!hasWooConfig) {
+            CustomToast.showError(this, "WooCommerce not configured. Please check settings.", Toast.LENGTH_LONG)
+            progressBar?.visibility = View.GONE
+            placeOrderButton.isEnabled = true
+            return
+        }
+
+        lifecycleScope.launch {
+            try {
+                val repo = WooRepository(this@QuickCheckoutActivity)
+                
+                // Prepare line items
+                val lineItems = listOf(
+                    WooOrderLineItem(
+                        product_id = product!!.id,
+                        quantity = quantity
+                    )
+                )
+                
+                // Prepare billing info
+                val name = nameInput.text.toString().trim()
+                val nameParts = name.split(" ", limit = 2)
+                val billing = WooBilling(
+                    first_name = nameParts.getOrNull(0) ?: name,
+                    last_name = nameParts.getOrNull(1) ?: "",
+                    address_1 = addressInput.text.toString().trim(),
+                    address_2 = "",
+                    city = "",
+                    state = "",
+                    postcode = pincodeInput.text.toString().trim(),
+                    email = AuthManager.getUserEmail().ifBlank { "customer@natrajsuper.com" },
+                    phone = phoneInput.text.toString().trim(),
+                    country = "IN"
+                )
+                
+                // Prepare shipping info
+                val shipping = WooShipping(
+                    first_name = billing.first_name,
+                    last_name = billing.last_name,
+                    address_1 = billing.address_1,
+                    address_2 = billing.address_2,
+                    city = billing.city,
+                    state = billing.state,
+                    postcode = billing.postcode,
+                    country = "IN"
+                )
+                
+                // Add custom meta data
+                val deliveryType = if (expressDelivery.isChecked) "Express (1-2 days)" else "Standard (3-5 days)"
+                val metaData = listOf(
+                    WooMetaData("_app_order", "true"),
+                    WooMetaData("_order_source", "Android App - Quick Checkout"),
+                    WooMetaData("_delivery_type", deliveryType),
+                    WooMetaData("_delivery_charge", deliveryCharge.toString())
+                )
+                
+                Log.d(TAG, "Creating WooCommerce order...")
+                
+                // Place order
+                val response = withContext(Dispatchers.IO) {
+                    repo.placeOrder(
+                        billing = billing,
+                        shipping = shipping,
+                        lineItems = lineItems,
+                        paymentMethod = paymentMethod,
+                        paymentTitle = paymentTitle,
+                        setPaid = paymentMethod != "cod",
+                        customerNote = "Quick checkout order",
+                        metaData = metaData
+                    )
+                }
+
+                progressBar?.visibility = View.GONE
+                placeOrderButton.isEnabled = true
+                
+                Log.d(TAG, "✓ Order created successfully!")
+                Log.d(TAG, "Order ID: ${response.id}")
+                Log.d(TAG, "Order Number: ${response.number}")
+                
+                // Navigate to confirmation with tracking
+                val intent = Intent(this@QuickCheckoutActivity, OrderConfirmationActivity::class.java)
+                intent.putExtra("order_id", response.number)
+                intent.putExtra("order_woo_id", response.id)
+                intent.putExtra("order_status", response.status)
+                intent.putExtra("order_total", response.total)
+                intent.putExtra("offline_mode", false)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
                 finish()
+                
+            } catch (e: Exception) {
+                progressBar?.visibility = View.GONE
+                placeOrderButton.isEnabled = true
+                
+                Log.e(TAG, "✗ Order placement failed", e)
+                CustomToast.showError(this@QuickCheckoutActivity, 
+                    "Failed to place order: ${e.message}", 
+                    Toast.LENGTH_LONG)
             }
-            .setNegativeButton("Close") { _, _ ->
-                finish()
-            }
-            .setCancelable(false)
-            .show()
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {

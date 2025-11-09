@@ -23,6 +23,10 @@ class CategoryAdapter(
         submitList(categories)
         setHasStableIds(true)
     }
+    
+    fun updateCategories(newCategories: List<Category>) {
+        submitList(newCategories)
+    }
 
     inner class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val card: MaterialCardView = itemView.findViewById(R.id.category_card)
