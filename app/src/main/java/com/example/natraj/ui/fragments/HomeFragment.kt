@@ -195,10 +195,10 @@ class HomeFragment : Fragment() {
                     val allCategory = Category(0, "All", imageUrl = "", hasSpecialOffer = false)
                     val categories = listOf(allCategory) + list
                     categoriesRecycler.adapter = SimpleCategoryAdapter(categories) { category ->
-                        // Navigate to AllProductsActivity with category filter
-                        val intent = Intent(requireContext(), AllProductsActivity::class.java)
-                        intent.putExtra("extra_category_id", category.id)
-                        intent.putExtra("extra_category_name", category.name)
+                        // Navigate to the dedicated CategoryProductsActivity with proper extras
+                        val intent = Intent(requireContext(), com.example.natraj.ui.activities.CategoryProductsActivity::class.java)
+                        intent.putExtra("category_id", category.id)
+                        intent.putExtra("category_name", category.name)
                         startActivity(intent)
                     }
                 } catch (e: Exception) {
@@ -317,7 +317,7 @@ class HomeFragment : Fragment() {
         recommendedProductsRecycler.isNestedScrollingEnabled = false
         
         recommendedProductsRecycler.adapter = GridProductAdapter(
-            products,
+            products.toMutableList(),
             onProductClick = { product ->
                 try {
                     val intent = Intent(requireContext(), ProductDetailActivity::class.java)
@@ -341,7 +341,8 @@ class HomeFragment : Fragment() {
                 val repo = com.example.natraj.data.WpRepository(requireContext())
                 val posts = withContext(Dispatchers.IO) { repo.getRecentPosts(5) }
                 val adapter = BlogAdapter { post ->
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.url))
+                    val intent = Intent(requireContext(), BlogDetailActivity::class.java)
+                    intent.putExtra("blog_post", post)
                     startActivity(intent)
                 }
                 adapter.submitList(posts)
@@ -471,7 +472,7 @@ class HomeFragment : Fragment() {
     
     private fun updateProductsRecycler(products: List<Product>) {
         productsRecycler.adapter = GridProductAdapter(
-            products,
+            products.toMutableList(),
             onProductClick = { product ->
                 val intent = Intent(requireContext(), ProductDetailActivity::class.java)
                 intent.putExtra("product", product)

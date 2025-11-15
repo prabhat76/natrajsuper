@@ -10,6 +10,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
+import com.example.natraj.ui.activities.AccountDetailsActivity
+import com.example.natraj.ui.activities.WishlistActivity
+import com.example.natraj.util.CustomToast
+import com.example.natraj.util.sync.AccountSyncManager
+import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
     
@@ -31,7 +37,6 @@ class ProfileFragment : Fragment() {
         val ordersSection = view.findViewById<LinearLayout>(R.id.profile_orders_section)
         val wishlistSection = view.findViewById<LinearLayout>(R.id.profile_wishlist_section)
         val addressSection = view.findViewById<LinearLayout>(R.id.profile_address_section)
-        val settingsSection = view.findViewById<LinearLayout>(R.id.profile_settings_section)
         val helpSection = view.findViewById<LinearLayout>(R.id.profile_help_section)
         val logoutSection = view.findViewById<LinearLayout>(R.id.profile_logout_section)
 
@@ -46,9 +51,8 @@ class ProfileFragment : Fragment() {
 
         wishlistSection.setOnClickListener {
             if (AuthManager.isLoggedIn()) {
-                if (isAdded && context != null) {
-                    Toast.makeText(requireContext(), "Wishlist feature coming soon!", Toast.LENGTH_SHORT).show()
-                }
+                val intent = Intent(requireContext(), WishlistActivity::class.java)
+                startActivity(intent)
             } else {
                 showLoginPrompt()
             }
@@ -56,17 +60,11 @@ class ProfileFragment : Fragment() {
 
         addressSection.setOnClickListener {
             if (AuthManager.isLoggedIn()) {
-                if (isAdded && context != null) {
-                    Toast.makeText(requireContext(), "Address management coming soon!", Toast.LENGTH_SHORT).show()
-                }
+                val intent = Intent(requireContext(), AccountDetailsActivity::class.java)
+                startActivity(intent)
             } else {
                 showLoginPrompt()
             }
-        }
-
-        settingsSection.setOnClickListener {
-            val intent = Intent(requireContext(), WordPressSettingsActivity::class.java)
-            startActivity(intent)
         }
 
         helpSection.setOnClickListener {
@@ -97,39 +95,39 @@ class ProfileFragment : Fragment() {
             userEmailText.text = AuthManager.getUserEmail()
             userEmailText.visibility = View.VISIBLE
         } else {
-            userNameText.text = "Guest User"
-            userEmailText.text = "Login to access all features"
+            userNameText.text = getString(R.string.profile_guest_user)
+            userEmailText.text = getString(R.string.profile_login_prompt)
             userEmailText.visibility = View.VISIBLE
         }
     }
     
     private fun showLoginPrompt() {
         AlertDialog.Builder(requireContext())
-            .setTitle("Login Required")
-            .setMessage("Please login to access this feature")
-            .setPositiveButton("Login") { _, _ ->
+            .setTitle(R.string.dialog_login_required)
+            .setMessage(R.string.dialog_login_message)
+            .setPositiveButton(R.string.dialog_login_button) { _, _ ->
                 val intent = Intent(requireContext(), LoginActivity::class.java)
                 startActivity(intent)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.dialog_cancel, null)
             .show()
     }
     
     private fun showLogoutDialog() {
         AlertDialog.Builder(requireContext())
-            .setTitle("Logout")
-            .setMessage("Are you sure you want to logout?")
-            .setPositiveButton("Logout") { _, _ ->
+            .setTitle(R.string.dialog_logout_title)
+            .setMessage(R.string.dialog_logout_message)
+            .setPositiveButton(R.string.dialog_logout_button) { _, _ ->
                 performLogout()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.dialog_cancel, null)
             .show()
     }
     
     private fun performLogout() {
         AuthManager.logout()
         if (isAdded && context != null) {
-            Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), R.string.toast_logged_out, Toast.LENGTH_SHORT).show()
         }
         
         // Navigate to login screen

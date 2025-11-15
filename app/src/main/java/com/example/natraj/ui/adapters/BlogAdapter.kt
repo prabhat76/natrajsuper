@@ -43,8 +43,8 @@ class BlogAdapter(
             // Load image with Glide
             Glide.with(itemView.context)
                 .load(blogPost.imageUrl)
-                .placeholder(R.drawable.natraj_logo_official)
-                .error(R.drawable.natraj_logo_official)
+                .placeholder(R.drawable.natraj_logo)
+                .error(R.drawable.natraj_logo)
                 .centerCrop()
                 .into(blogImage)
 

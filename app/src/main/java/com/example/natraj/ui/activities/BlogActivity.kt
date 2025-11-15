@@ -7,6 +7,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.natraj.util.ThemeUtil
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.tabs.TabLayout
 
@@ -51,12 +52,14 @@ class BlogActivity : AppCompatActivity() {
         toolbar.setNavigationOnClickListener {
             finish()
         }
+        ThemeUtil.applyToolbarColor(toolbar, this)
     }
     
     private fun setupRecyclerView() {
         blogAdapter = BlogAdapter { blogPost ->
-            // Open blog URL in external browser
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(blogPost.url))
+            // Open blog detail activity with full content
+            val intent = Intent(this, BlogDetailActivity::class.java)
+            intent.putExtra("blog_post", blogPost)
             startActivity(intent)
         }
         recyclerView.adapter = blogAdapter

@@ -13,7 +13,7 @@ import com.bumptech.glide.Glide
 import com.example.natraj.util.CustomToast
 
 class GridProductAdapter(
-    private val products: List<Product>,
+    private var products: MutableList<Product> = mutableListOf(),
     private val onProductClick: (Product) -> Unit = {},
     private val onFavoriteClick: (Product) -> Unit = {},
     private val onAddToCart: (Product) -> Unit = {}
@@ -107,9 +107,6 @@ class GridProductAdapter(
 
             // Click listeners
             itemView.setOnClickListener {
-                val intent = Intent(itemView.context, ProductDetailActivity::class.java)
-                intent.putExtra("product", product)
-                itemView.context.startActivity(intent)
                 onProductClick(product)
             }
 
@@ -185,4 +182,18 @@ class GridProductAdapter(
     }
 
     override fun getItemCount(): Int = products.size
+
+    // Update entire product list (for initial load or filtering)
+    fun update(newProducts: List<Product>) {
+        products.clear()
+        products.addAll(newProducts)
+        notifyDataSetChanged()
+    }
+
+    // Append products for pagination
+    fun append(newProducts: List<Product>) {
+        val startPosition = products.size
+        products.addAll(newProducts)
+        notifyItemRangeInserted(startPosition, newProducts.size)
+    }
 }

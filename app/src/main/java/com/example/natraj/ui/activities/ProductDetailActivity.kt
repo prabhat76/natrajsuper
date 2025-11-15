@@ -63,10 +63,27 @@ class ProductDetailActivity : AppCompatActivity() {
         val displayPrice = if (product.transferPrice > 0) product.transferPrice else product.price
         price.text = "₹${displayPrice.toInt()}"
         
-        // Render HTML description properly
+        // Render HTML description properly with line breaks and formatting
         if (!product.description.isNullOrEmpty()) {
+            // Convert HTML to formatted text preserving line breaks
+            val htmlText = product.description
+                .replace("<p>", "")
+                .replace("</p>", "\n\n")
+                .replace("<br>", "\n")
+                .replace("<br/>", "\n")
+                .replace("<br />", "\n")
+                .replace("<ul>", "")
+                .replace("</ul>", "\n")
+                .replace("<li>", "• ")
+                .replace("</li>", "\n")
+                .replace("<strong>", "")
+                .replace("</strong>", "")
+                .replace("<b>", "")
+                .replace("</b>", "")
+                .trim()
+            
             description.text = HtmlCompat.fromHtml(
-                product.description,
+                htmlText,
                 HtmlCompat.FROM_HTML_MODE_LEGACY
             )
         } else {
@@ -104,9 +121,10 @@ class ProductDetailActivity : AppCompatActivity() {
         }
 
         buyNow.setOnClickListener {
-            // Quick Commerce - Direct checkout
+            // Navigate directly to checkout
             val intent = Intent(this, QuickCheckoutActivity::class.java)
             intent.putExtra("product", product)
+            intent.putExtra("quantity", qty)
             startActivity(intent)
         }
 
@@ -230,7 +248,7 @@ class ProductDetailActivity : AppCompatActivity() {
     private fun updateWishlistButton(wishlistBtn: ImageView, productId: Int) {
         if (WishlistManager.isInWishlist(productId)) {
             wishlistBtn.setImageResource(android.R.drawable.btn_star_big_on)
-            wishlistBtn.setColorFilter(android.graphics.Color.parseColor("#FF6B35"))
+            wishlistBtn.setColorFilter(android.graphics.Color.parseColor("#1976D2"))
         } else {
             wishlistBtn.setImageResource(android.R.drawable.btn_star_big_off)
             wishlistBtn.setColorFilter(android.graphics.Color.parseColor("#BDBDBD"))
@@ -252,7 +270,7 @@ class ProductDetailActivity : AppCompatActivity() {
             imageView.layoutParams = params
             
             if (index == activeIndex) {
-                imageView.setColorFilter(android.graphics.Color.parseColor("#FF6B35"))
+                imageView.setColorFilter(android.graphics.Color.parseColor("#1976D2"))
             } else {
                 imageView.setColorFilter(android.graphics.Color.parseColor("#BDBDBD"))
             }
@@ -270,8 +288,6 @@ class ProductDetailActivity : AppCompatActivity() {
     }
     
     override fun onBackPressed() {
-        // Override system back button to use our navigation
         super.onBackPressed()
-        navigateBackToMain()
     }
 }

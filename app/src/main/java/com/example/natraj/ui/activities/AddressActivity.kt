@@ -37,6 +37,15 @@ class AddressActivity : AppCompatActivity() {
         val addressTypeGroup = findViewById<RadioGroup>(R.id.address_type_group)
         val continueButton = findViewById<Button>(R.id.address_continue_btn)
 
+        // Pre-fill user info if logged in
+        if (AuthManager.isLoggedIn()) {
+            nameInput.setText(AuthManager.getUserName())
+            mobileInput.setText(AuthManager.getUserPhone())
+            
+            // Load saved address if available
+            loadSavedAddress()
+        }
+
         backButton.setOnClickListener {
             // Navigate back to MainActivity
             val intent = Intent(this, MainActivity::class.java)
@@ -79,12 +88,48 @@ class AddressActivity : AppCompatActivity() {
                 state = state,
                 addressType = addressType
             )
+            
+            // Save address for logged-in users
+            if (AuthManager.isLoggedIn()) {
+                saveAddressForFuture(deliveryAddress)
+            }
 
             // Navigate to payment page
             val intent = Intent(this, PaymentActivity::class.java)
             intent.putExtra("address", deliveryAddress)
             startActivity(intent)
         }
+    }
+    
+    private fun loadSavedAddress() {
+        // Only load saved addresses for logged-in users
+        if (!AuthManager.isLoggedIn()) {
+            return
+        }
+        
+        val defaultAddress = com.example.natraj.util.manager.AddressManager.getDefaultAddress()
+        defaultAddress?.let {
+            addressInput.setText(it.addressLine)
+            pincodeInput.setText(it.pincode)
+            // Extract city and state from saved address if available
+        }
+    }
+    
+    private fun saveAddressForFuture(address: Address) {
+        // Only save addresses for logged-in users
+        if (!AuthManager.isLoggedIn()) {
+            return
+        }
+        
+        val savedAddress = com.example.natraj.util.manager.SavedAddress(
+            name = address.name,
+            phone = address.mobile,
+            addressLine = "${address.address}, ${address.locality}",
+            pincode = address.pincode,
+            isDefault = !com.example.natraj.util.manager.AddressManager.hasAddresses()
+        )
+        
+        com.example.natraj.util.manager.AddressManager.saveAddress(savedAddress)
     }
 
     private fun setupRealTimeValidation() {

@@ -1,0 +1,57 @@
+package com.example.natraj.util.tracking
+
+import android.content.Context
+import com.example.natraj.data.woo.WooOrderResponse
+
+/**
+ * Extension functions for order tracking
+ */
+
+/**
+ * Check if order needs tracking updates
+ */
+fun WooOrderResponse.needsTrackingUpdate(): Boolean {
+    return status in listOf("processing", "on-hold", "pending") && 
+           hasTrackingInfo()
+}
+
+/**
+ * Check if order has tracking information
+ */
+fun WooOrderResponse.hasTrackingInfo(): Boolean {
+    return meta_data?.any { 
+        it.key == "_delhivery_tracking_number" && 
+        !it.value.toString().isBlank() 
+    } == true
+}
+
+/**
+ * Get tracking number from order meta data
+ */
+fun WooOrderResponse.getTrackingNumber(): String? {
+    return meta_data?.find { it.key == "_delhivery_tracking_number" }?.value?.toString()
+}
+
+/**
+ * Force immediate tracking update for specific order
+ */
+fun Context.forceTrackingUpdate(orderId: Int) {
+    val scheduler = OrderTrackingScheduler(this)
+    scheduler.forceUpdate()
+}
+
+/**
+ * Start tracking for new order
+ */
+fun Context.startOrderTracking() {
+    val scheduler = OrderTrackingScheduler(this)
+    scheduler.startPeriodicTracking()
+}
+
+/**
+ * Stop all tracking
+ */
+fun Context.stopOrderTracking() {
+    val scheduler = OrderTrackingScheduler(this)
+    scheduler.stopTracking()
+}

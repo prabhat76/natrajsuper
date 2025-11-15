@@ -1,0 +1,149 @@
+package com.example.natraj.util.tracking
+
+import android.content.Context
+import androidx.work.*
+import com.example.natraj.data.repository.WooRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
+
+/**
+ * Scheduler for automatic order tracking updates
+ */
+class OrderTrackingScheduler(private val context: Context) {
+    
+    companion object {
+        private const val WORK_NAME = "order_tracking_sync"
+        private const val UPDATE_INTERVAL_MINUTES = 15L
+    }
+    
+    /**
+     * Start periodic tracking updates
+     */
+    fun startPeriodicTracking() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        
+        val trackingWork = PeriodicWorkRequestBuilder<OrderTrackingWorker>(
+            UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES
+        )
+            .setConstraints(constraints)
+            .setBackoffCriteria(BackoffPolicy.LINEAR, 5, TimeUnit.MINUTES)
+            .build()
+        
+        WorkManager.getInstance(context)
+            .enqueueUniquePeriodicWork(
+                WORK_NAME,
+                ExistingPeriodicWorkPolicy.KEEP,
+                trackingWork
+            )
+    }
+    
+    /**
+     * Stop tracking updates
+     */
+    fun stopTracking() {
+        WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+    }
+    
+    /**
+     * Force immediate tracking update
+     */
+    fun forceUpdate() {
+        val immediateWork = OneTimeWorkRequestBuilder<OrderTrackingWorker>()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .build()
+        
+        WorkManager.getInstance(context).enqueue(immediateWork)
+    }
+}
+
+/**
+ * Worker that performs the actual tracking updates
+ */
+class OrderTrackingWorker(
+    context: Context,
+    params: WorkerParameters
+) : CoroutineWorker(context, params) {
+    
+    private val wooRepository = WooRepository(applicationContext)
+    private val trackingManager = DelhiveryTrackingManager(applicationContext)
+    
+    override suspend fun doWork(): Result {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Get recent orders that might need tracking updates
+                val orders = wooRepository.getRecentOrders(limit = 50)
+                
+                orders.forEach { order ->
+                    // Skip completed or cancelled orders
+                    if (order.status in listOf("completed", "cancelled", "refunded")) {
+                        return@forEach
+                    }
+                    
+                    // Check if order has tracking info
+                    val trackingInfo = trackingManager.getTrackingInfo(order.id)
+                    if (trackingInfo != null) {
+                        // Simulate tracking status check (replace with actual API call)
+                        val currentStatus = checkTrackingStatus(trackingInfo.trackingNumber)
+                        
+                        // Update order if status changed
+                        if (shouldUpdateOrderStatus(order.status, currentStatus)) {
+                            trackingManager.updateOrderStatusFromTracking(
+                                order.id, 
+                                currentStatus
+                            )
+                        }
+                    }
+                }
+                
+                Result.success()
+            } catch (e: Exception) {
+                android.util.Log.e("OrderTrackingWorker", "Tracking update failed", e)
+                Result.retry()
+            }
+        }
+    }
+    
+    /**
+     * Check tracking status (mock implementation - replace with actual API)
+     */
+    private suspend fun checkTrackingStatus(trackingNumber: String): String {
+        // TODO: Replace with actual Delhivery API call
+        // For now, return mock status
+        return "in-transit"
+    }
+    
+    /**
+     * Determine if order status should be updated
+     */
+    private fun shouldUpdateOrderStatus(currentStatus: String, trackingStatus: String): Boolean {
+        val statusPriority = mapOf(
+            "pending" to 1,
+            "processing" to 2,
+            "on-hold" to 2,
+            "completed" to 3,
+            "cancelled" to 4
+        )
+        
+        val newStatus = mapTrackingToWooStatus(trackingStatus)
+        val currentPriority = statusPriority[currentStatus] ?: 1
+        val newPriority = statusPriority[newStatus] ?: 1
+        
+        return newPriority > currentPriority
+    }
+    
+    private fun mapTrackingToWooStatus(trackingStatus: String): String {
+        return when (trackingStatus.lowercase()) {
+            "dispatched", "in-transit" -> "processing"
+            "delivered" -> "completed"
+            "cancelled", "returned" -> "cancelled"
+            else -> "processing"
+        }
+    }
+}

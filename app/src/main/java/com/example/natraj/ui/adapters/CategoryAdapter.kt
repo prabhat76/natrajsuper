@@ -77,14 +77,17 @@ class CategoryAdapter(
                 categoryImage.setImageResource(resId)
             }
 
-            // Enhanced click animation
-            itemView.setOnClickListener { 
+            // Click: navigate immediately, run animation purely for visual feedback
+            itemView.setOnClickListener {
                 val previous = selectedPosition
                 selectedPosition = bindingAdapterPosition
                 if (previous != RecyclerView.NO_POSITION) notifyItemChanged(previous)
                 notifyItemChanged(selectedPosition)
 
-                // Add scale animation
+                // Trigger navigation right away
+                onCategoryClick(category)
+
+                // Fire-and-forget scale animation
                 itemView.animate()
                     .scaleX(0.95f)
                     .scaleY(0.95f)
@@ -95,7 +98,6 @@ class CategoryAdapter(
                             .scaleY(1.0f)
                             .setDuration(100)
                             .start()
-                        onCategoryClick(category)
                     }
                     .start()
             }

@@ -46,11 +46,18 @@
         android:layout_marginTop="50dp"
         android:visibility="gone" />
 
-    <!-- Orders List -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/orders_recycler"
+    <!-- Orders List with Pull to Refresh -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/orders_swipe_refresh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/orders_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- Empty View -->
     <LinearLayout
@@ -85,6 +92,21 @@
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
             android:gravity="center" />
+
+        <Button
+            android:id="@+id/go_home_button_orders"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="🏠 Shop Now"
+            android:textColor="@color/white"
+            android:background="@drawable/button_rounded"
+            android:backgroundTint="@color/primary"
+            android:paddingHorizontal="40dp"
+            android:paddingVertical="14dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:elevation="4dp" />
     </LinearLayout>
 
 </LinearLayout>

@@ -51,7 +51,7 @@ interface WooApi {
     suspend fun getOrder(@Path("id") orderId: Int): WooOrderResponse
     
     @PUT("wp-json/wc/v3/orders/{id}")
-    suspend fun updateOrder(@Path("id") orderId: Int, @Body body: Map<String, Any>): WooOrderResponse
+    suspend fun updateOrder(@Path("id") orderId: Int, @Body body: WooOrderUpdateRequest): WooOrderResponse
     
     // Payment Gateways
     @GET("wp-json/wc/v3/payment_gateways")
@@ -66,4 +66,21 @@ interface WooApi {
     
     @GET("wp-json/wc/v3/shipping/zones/{id}/methods")
     suspend fun getShippingMethods(@Path("id") zoneId: Int): List<WooShippingMethod>
+    
+    // Customers
+    @POST("wp-json/wc/v3/customers")
+    suspend fun createCustomer(@Body body: WooCreateCustomerRequest): WooCustomer
+    
+    @GET("wp-json/wc/v3/customers/{id}")
+    suspend fun getCustomer(@Path("id") customerId: Int): WooCustomer
+    
+    @GET("wp-json/wc/v3/customers")
+    suspend fun getCustomers(
+        @Query("email") email: String? = null,
+        @Query("per_page") perPage: Int = 10,
+        @Query("page") page: Int = 1
+    ): List<WooCustomer>
+    
+    @PUT("wp-json/wc/v3/customers/{id}")
+    suspend fun updateCustomer(@Path("id") customerId: Int, @Body body: WooCustomerUpdateRequest): WooCustomer
 }

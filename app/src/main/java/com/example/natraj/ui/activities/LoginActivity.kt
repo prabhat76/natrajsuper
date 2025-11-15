@@ -2,11 +2,18 @@ package com.example.natraj
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.natraj.data.WooRepository
+import com.example.natraj.util.CustomToast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LoginActivity : AppCompatActivity() {
     
@@ -84,16 +91,51 @@ class LoginActivity : AppCompatActivity() {
     }
     
     private fun performLogin(email: String) {
-        // In a real app, this would call an API
-        // For now, we'll just store the login state
+        // Disable button and show progress
+        loginBtn.isEnabled = false
+        loginBtn.text = "Logging in..."
         
-        // Extract name from email (before @)
-        val name = email.substringBefore("@").capitalize()
-        
-        AuthManager.login(name, email, "")
-        
-        Toast.makeText(this, "Welcome back, $name!", Toast.LENGTH_SHORT).show()
-        navigateToMain()
+        lifecycleScope.launch {
+            try {
+                // Check if customer exists in WooCommerce
+                val repo = WooRepository(this@LoginActivity)
+                
+                val customer = withContext(Dispatchers.IO) {
+                    repo.getCustomerByEmail(email)
+                }
+                
+                if (customer != null) {
+                    // Customer found - login
+                    val fullName = "${customer.first_name} ${customer.last_name}".trim()
+                    val displayName = fullName.ifBlank { email.substringBefore("@") }
+                    
+                    AuthManager.login(displayName, email, "", customer.id)
+                    
+                    CustomToast.showSuccess(this@LoginActivity, "Welcome back, $displayName!")
+                    navigateToMain()
+                } else {
+                    // Customer not found
+                    loginBtn.isEnabled = true
+                    loginBtn.text = "LOGIN"
+                    CustomToast.showError(
+                        this@LoginActivity, 
+                        "Account not found. Please sign up first.",
+                        Toast.LENGTH_LONG
+                    )
+                }
+                
+            } catch (e: Exception) {
+                Log.e("LoginActivity", "Login failed", e)
+                loginBtn.isEnabled = true
+                loginBtn.text = "LOGIN"
+                
+                // For development: allow local login if WooCommerce is not configured
+                val name = email.substringBefore("@")
+                AuthManager.login(name, email, "", 0)
+                CustomToast.showWarning(this@LoginActivity, "Logged in locally (WooCommerce unavailable)")
+                navigateToMain()
+            }
+        }
     }
     
     private fun navigateToMain() {

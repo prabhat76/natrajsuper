@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.natraj.data.WooRepository
 import com.example.natraj.util.CustomToast
-import com.example.natraj.util.tracking.DelhiveryTrackingManager
+// import com.example.natraj.util.tracking.DelhiveryTrackingManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,7 +24,7 @@ import java.util.Locale
 class OrderConfirmationActivity : AppCompatActivity() {
 
     private val TAG = "OrderConfirmation"
-    private lateinit var trackingManager: DelhiveryTrackingManager
+    // private lateinit var trackingManager: DelhiveryTrackingManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +32,7 @@ class OrderConfirmationActivity : AppCompatActivity() {
 
         Log.d(TAG, "=== OrderConfirmationActivity Started ===")
         
-        trackingManager = DelhiveryTrackingManager(this)
+        // trackingManager = DelhiveryTrackingManager(this)
 
         val orderId = intent.getStringExtra("order_id") ?: run {
             Log.e(TAG, "No order_id provided, finishing activity")
@@ -59,6 +59,7 @@ class OrderConfirmationActivity : AppCompatActivity() {
         val trackingSection = findViewById<LinearLayout>(R.id.confirmation_tracking_section)
         val trackingText = findViewById<TextView>(R.id.confirmation_tracking_text)
         val trackButton = findViewById<Button>(R.id.confirmation_track_btn)
+        val refreshStatusButton = findViewById<Button>(R.id.confirmation_refresh_status_btn)
         val viewOrdersButton = findViewById<Button>(R.id.confirmation_view_orders_btn)
         val continueShoppingButton = findViewById<Button>(R.id.confirmation_continue_shopping_btn)
         val cancelOrderButton = findViewById<Button>(R.id.confirmation_cancel_order_btn)
@@ -84,24 +85,43 @@ class OrderConfirmationActivity : AppCompatActivity() {
             // For WooCommerce orders
             Log.d(TAG, "Loading WooCommerce order details...")
             addressText.text = "Order placed successfully"
-            paymentText.text = "Status: ${orderStatus.replaceFirstChar { it.uppercase() }}"
+            
+            // Update UI based on order status
+            val statusText = orderStatus.replaceFirstChar { it.uppercase() }
+            paymentText.text = "Status: $statusText"
             amountText.text = if (orderTotal.isNotBlank()) "₹$orderTotal" else ""
+            
+            // Show different message for cancelled orders
+            if (orderStatus.lowercase() == "cancelled") {
+                val successIcon = findViewById<TextView>(R.id.confirmation_success_icon)
+                val successTitle = findViewById<TextView>(R.id.confirmation_success_title)
+                val successMessage = findViewById<TextView>(R.id.confirmation_success_message)
+                
+                successIcon?.text = "❌"
+                successTitle?.text = "Order Cancelled"
+                successMessage?.text = "Your order has been cancelled"
+            }
             
             // Load tracking information if available
             if (wooOrderId > 0) {
                 Log.d(TAG, "Loading tracking info for order $wooOrderId...")
                 loadTrackingInfo(wooOrderId, trackingSection, trackingText, trackButton)
                 
-                // Show cancel button only for pending/on-hold orders
+                // Show refresh status button for WooCommerce orders
+                refreshStatusButton.visibility = View.VISIBLE
+                setupRefreshButton(wooOrderId, refreshStatusButton, paymentText)
+                
+                // Show cancel button only for pending/on-hold/processing orders
                 if (orderStatus.lowercase() in listOf("pending", "on-hold", "processing")) {
                     cancelOrderButton.visibility = View.VISIBLE
-                    setupCancelButton(wooOrderId, orderStatus, cancelOrderButton)
+                    setupCancelButton(wooOrderId, orderStatus, cancelOrderButton, paymentText)
                 } else {
                     cancelOrderButton.visibility = View.GONE
                 }
             } else {
                 Log.w(TAG, "No valid WooCommerce order ID, hiding tracking section")
                 trackingSection.visibility = View.GONE
+                refreshStatusButton.visibility = View.GONE
                 cancelOrderButton.visibility = View.GONE
             }
         }
@@ -127,56 +147,74 @@ class OrderConfirmationActivity : AppCompatActivity() {
         trackingText: TextView,
         trackButton: Button
     ) {
-        Log.d(TAG, "Fetching tracking info for order $wooOrderId...")
-        lifecycleScope.launch {
-            try {
-                val trackingInfo = trackingManager.getTrackingInfo(wooOrderId)
-                
-                if (trackingInfo != null) {
-                    Log.d(TAG, "✓ Tracking info found:")
-                    Log.d(TAG, "  Tracking Number: ${trackingInfo.trackingNumber}")
-                    Log.d(TAG, "  Provider: ${trackingInfo.provider}")
-                    Log.d(TAG, "  AWB: ${trackingInfo.awbNumber}")
-                    Log.d(TAG, "  URL: ${trackingInfo.trackingUrl}")
-                    
-                    trackingSection.visibility = View.VISIBLE
-                    trackingText.text = "Tracking Number: ${trackingInfo.trackingNumber}\n" +
-                                       "Provider: ${trackingInfo.provider}" +
-                                       if (trackingInfo.awbNumber.isNotBlank()) 
-                                           "\nAWB: ${trackingInfo.awbNumber}" 
-                                       else ""
-                    
-                    trackButton.visibility = View.VISIBLE
-                    trackButton.setOnClickListener {
-                        Log.d(TAG, "Opening tracking URL: ${trackingInfo.trackingUrl}")
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(trackingInfo.trackingUrl))
-                        startActivity(intent)
-                    }
-                } else {
-                    Log.w(TAG, "No tracking info available for order $wooOrderId")
-                    trackingSection.visibility = View.GONE
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "✗ Failed to load tracking info", e)
-                trackingSection.visibility = View.GONE
-            }
+        // Tracking feature temporarily disabled
+        Log.d(TAG, "Tracking feature disabled")
+        trackingSection.visibility = View.GONE
+        trackButton.visibility = View.GONE
+    }
+    
+    private fun setupRefreshButton(wooOrderId: Int, refreshButton: Button, paymentText: TextView) {
+        refreshButton.setOnClickListener {
+            refreshOrderStatus(wooOrderId, refreshButton, paymentText)
         }
     }
     
-    private fun setupCancelButton(wooOrderId: Int, currentStatus: String, cancelButton: Button) {
+    private fun setupCancelButton(wooOrderId: Int, currentStatus: String, cancelButton: Button, paymentText: TextView) {
+        Log.d(TAG, "Setting up cancel button for order $wooOrderId with status $currentStatus")
         cancelButton.setOnClickListener {
+            Log.d(TAG, "Cancel button clicked for order $wooOrderId")
             AlertDialog.Builder(this)
                 .setTitle("Cancel Order")
                 .setMessage("Are you sure you want to cancel this order? This action cannot be undone.")
                 .setPositiveButton("Yes, Cancel") { _, _ ->
-                    cancelOrder(wooOrderId, cancelButton)
+                    Log.d(TAG, "User confirmed order cancellation")
+                    cancelOrder(wooOrderId, cancelButton, paymentText)
                 }
-                .setNegativeButton("No", null)
+                .setNegativeButton("No") { _, _ ->
+                    Log.d(TAG, "User cancelled the cancellation dialog")
+                }
                 .show()
         }
     }
     
-    private fun cancelOrder(wooOrderId: Int, cancelButton: Button) {
+    private fun refreshOrderStatus(wooOrderId: Int, refreshButton: Button, paymentText: TextView) {
+        Log.d(TAG, "Refreshing order status for $wooOrderId...")
+        
+        refreshButton.isEnabled = false
+        val originalText = refreshButton.text
+        refreshButton.text = "Refreshing..."
+        
+        lifecycleScope.launch {
+            try {
+                val repo = WooRepository(this@OrderConfirmationActivity)
+                
+                val order = withContext(Dispatchers.IO) {
+                    repo.getOrderById(wooOrderId)
+                }
+                
+                if (order != null) {
+                    Log.d(TAG, "✓ Order status refreshed: ${order.status}")
+                    paymentText.text = "Status: ${order.status.replaceFirstChar { it.uppercase() }}"
+                    CustomToast.showSuccess(this@OrderConfirmationActivity, 
+                        "Order status updated")
+                } else {
+                    Log.w(TAG, "Order not found")
+                    CustomToast.showError(this@OrderConfirmationActivity, 
+                        "Failed to fetch order details")
+                }
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "✗ Failed to refresh order status", e)
+                CustomToast.showError(this@OrderConfirmationActivity, 
+                    "Failed to refresh: ${e.message}")
+            } finally {
+                refreshButton.isEnabled = true
+                refreshButton.text = originalText
+            }
+        }
+    }
+    
+    private fun cancelOrder(wooOrderId: Int, cancelButton: Button, paymentText: TextView) {
         Log.d(TAG, "Cancelling order $wooOrderId...")
         
         cancelButton.isEnabled = false
@@ -186,27 +224,44 @@ class OrderConfirmationActivity : AppCompatActivity() {
             try {
                 val repo = WooRepository(this@OrderConfirmationActivity)
                 
+                Log.d(TAG, "Making API call to update order status to cancelled...")
                 val response = withContext(Dispatchers.IO) {
-                    repo.updateOrder(wooOrderId, mapOf("status" to "cancelled"))
+                    repo.updateOrder(wooOrderId, status = "cancelled")
                 }
                 
-                Log.d(TAG, "✓ Order cancelled successfully")
-                CustomToast.showSuccess(this@OrderConfirmationActivity, 
-                    "Order cancelled successfully")
+                Log.d(TAG, "✓ Order cancelled successfully: ${response.status}")
+                Log.d(TAG, "Response: id=${response.id}, status=${response.status}")
                 
-                // Update UI
-                val paymentText = findViewById<TextView>(R.id.confirmation_payment)
-                paymentText.text = "Status: Cancelled"
-                cancelButton.visibility = View.GONE
+                // Show notification for order cancellation
+                com.example.natraj.util.notification.NotificationHelper.showOrderCancelledNotification(
+                    this@OrderConfirmationActivity,
+                    response.id.toString(),
+                    response.number ?: wooOrderId.toString()
+                )
+
+                withContext(Dispatchers.Main) {
+                    CustomToast.showSuccess(this@OrderConfirmationActivity, 
+                        "Order cancelled successfully")
+                    
+                    // Update UI
+                    paymentText.text = "Status: Cancelled"
+                    cancelButton.visibility = View.GONE
+                }
                 
             } catch (e: Exception) {
                 Log.e(TAG, "✗ Failed to cancel order", e)
-                CustomToast.showError(this@OrderConfirmationActivity, 
-                    "Failed to cancel order: ${e.message}", 
-                    Toast.LENGTH_LONG)
+                Log.e(TAG, "Error type: ${e.javaClass.simpleName}")
+                Log.e(TAG, "Error message: ${e.message}")
+                e.printStackTrace()
                 
-                cancelButton.isEnabled = true
-                cancelButton.text = "Cancel Order"
+                withContext(Dispatchers.Main) {
+                    CustomToast.showError(this@OrderConfirmationActivity, 
+                        "Failed to cancel order: ${e.message}", 
+                        Toast.LENGTH_LONG)
+                    
+                    cancelButton.isEnabled = true
+                    cancelButton.text = "CANCEL ORDER"
+                }
             }
         }
     }

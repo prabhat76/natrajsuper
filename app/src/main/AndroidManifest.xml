@@ -4,165 +4,149 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- For saving to public Downloads on Android 9 and below -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
-
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="http" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="https" />
-        </intent>
-    </queries>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:name=".NatrajApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/natraj_logo_official"
+        android:icon="@drawable/natraj_logo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/natraj_logo"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Natraj">
-        
-        <!-- Splash Activity (Launcher) -->
+        android:theme="@style/Theme.Natraj"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.Natraj">
+            android:theme="@style/Theme.Natraj.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
-        <!-- Login Activity -->
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Natraj" />
-        
-        <!-- Signup Activity -->
-        <activity
-            android:name=".SignupActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Natraj" />
-        
-        <!-- Main Activity -->
+
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
-
-        <!-- Product Detail Activity -->
-        <activity
-            android:name=".ProductDetailActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-            
-        <!-- All Products Activity -->
+            android:theme="@style/Theme.Natraj.NoActionBar" />
+
         <activity
             android:name=".AllProductsActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-            
-        <!-- 360 View Activity -->
+            android:parentActivityName=".MainActivity" />
+
         <activity
-            android:name=".Product360Activity"
+            android:name=".ui.activities.CategoryProductsActivity"
             android:exported="false"
-            android:parentActivityName=".ProductDetailActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ProductDetailActivity" />
-        </activity>
-            
-        <!-- Address Activity -->
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".ProductDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".AllProductsActivity" />
+
         <activity
             android:name=".AddressActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-            
-        <!-- Payment Activity -->
+            android:parentActivityName=".MainActivity" />
+
         <activity
             android:name=".PaymentActivity"
-            android:exported="false" />
-            
-        <!-- Order Confirmation Activity -->
+            android:exported="false"
+            android:parentActivityName=".AddressActivity" />
+
         <activity
             android:name=".OrderConfirmationActivity"
-            android:exported="false" />
-            
-        <!-- Orders History Activity -->
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
         <activity
             android:name=".OrdersActivity"
-            android:exported="false" />
-            
-        <!-- Catalogue Activity -->
-        <activity
-            android:name=".CatalogueActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-        
-        <!-- WordPress Settings Activity -->
+            android:parentActivityName=".MainActivity" />
+
         <activity
-            android:name=".WordPressSettingsActivity"
+            android:name=".ui.activities.WishlistActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-        
-        <!-- API Debug Activity -->
+            android:parentActivityName=".MainActivity" />
+
         <activity
-            android:name=".APIDebugActivity"
+            android:name=".ui.activities.AccountDetailsActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-        
-        <!-- Quick Checkout Activity -->
-        <activity
-            android:name=".QuickCheckoutActivity"
-            android:exported="false"
-            android:parentActivityName=".ProductDetailActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ProductDetailActivity" />
-        </activity>
-        
-        <!-- Blog Activity -->
+            android:parentActivityName=".MainActivity" />
+
         <activity
             android:name=".BlogActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-        
-        <!-- FileProvider for sharing PDFs -->
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".BlogDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".BlogActivity" />
+
+        <activity
+            android:name=".ErrorActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Natraj.NoActionBar" />
+
+        <activity
+            android:name=".OrderFailureActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Natraj.NoActionBar" />
+
+        <activity
+            android:name=".CatalogueActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".Product360Activity"
+            android:exported="false"
+            android:parentActivityName=".ProductDetailActivity" />
+
+        <activity
+            android:name=".QuickCheckoutActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Natraj.NoActionBar" />
+
+        <activity
+            android:name=".SignupActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Natraj.NoActionBar" />
+
+        <activity
+            android:name=".ui.activities.APIDebugActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".ui.activities.WordPressSettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <service
+            android:name=".util.kafka.KafkaNotificationService"
+            android:enabled="true"
+            android:exported="false" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -172,6 +156,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
     </application>
 
 </manifest>

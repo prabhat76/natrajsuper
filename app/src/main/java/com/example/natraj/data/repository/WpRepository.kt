@@ -16,15 +16,32 @@ class WpRepository(private val context: Context) {
 
     suspend fun getRecentPosts(limit: Int = 5): List<BlogPost> {
         val posts = api.getPosts(perPage = limit)
+        
+        // Fetch categories and authors for mapping if needed
+        val categories = try { getWpCategories() } catch (e: Exception) { emptyList() }
+        val users = try { getUsers() } catch (e: Exception) { emptyList() }
+        
         return posts.map { p ->
             val img = p.embedded?.media?.firstOrNull()?.sourceUrl ?: ""
+            
+            // Extract category name from embedded or fallback
+            val categoryName = p.embedded?.terms?.firstOrNull()?.firstOrNull()?.name
+                ?: categories.firstOrNull { it.id == p.categories.firstOrNull() }?.name
+                ?: "Uncategorized"
+            
+            // Extract author name from embedded or fallback
+            val authorName = p.embedded?.author?.firstOrNull()?.name
+                ?: users.firstOrNull { it.id == p.author }?.name
+                ?: "Admin"
+            
             BlogPost(
                 id = p.id,
                 title = HtmlCompat.fromHtml(p.title.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
                 excerpt = HtmlCompat.fromHtml(p.excerpt.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
+                content = p.content.rendered, // Full HTML content
                 date = p.date,
-                category = "",
-                author = "",
+                category = categoryName,
+                author = authorName,
                 url = p.link,
                 imageUrl = img
             )
@@ -103,10 +120,10 @@ class WpRepository(private val context: Context) {
     private fun extractOfferTitle(rawTitle: String): String {
         return when {
             rawTitle.contains("diwali", ignoreCase = true) -> "Diwali Sale"
-            rawTitle.contains("festival", ignoreCase = true) -> "Festival Special"
             rawTitle.contains("clearance", ignoreCase = true) -> "Clearance Sale"
             rawTitle.contains("mega", ignoreCase = true) -> "Mega Sale"
-            else -> "Special Offer"
+            rawTitle.contains("special", ignoreCase = true) -> "Special Offer"
+            else -> "Limited Time Deal"
         }
     }
 
@@ -123,9 +140,9 @@ class WpRepository(private val context: Context) {
     private fun extractOfferDescription(rawTitle: String): String {
         return when {
             rawTitle.contains("diwali", ignoreCase = true) -> "Celebrate with amazing deals on all products"
-            rawTitle.contains("festival", ignoreCase = true) -> "Festival season special discounts"
             rawTitle.contains("clearance", ignoreCase = true) -> "Clear out old stock at unbeatable prices"
-            else -> "Don't miss out on these exclusive deals"
+            rawTitle.contains("special", ignoreCase = true) -> "Get the best deals on premium products"
+            else -> "Don't miss out on these exclusive offers"
         }
     }
 

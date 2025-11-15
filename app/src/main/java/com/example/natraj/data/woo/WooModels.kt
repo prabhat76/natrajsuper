@@ -43,6 +43,8 @@ data class WooAttributeTerm(
 data class WooOrderLineItem(
     val product_id: Int,
     val quantity: Int,
+    val name: String? = null,
+    val image: WooImage? = null
 )
 
 data class WooBilling(
@@ -76,13 +78,20 @@ data class WooCreateOrderRequest(
     val billing: WooBilling,
     val shipping: WooShipping,
     val line_items: List<WooOrderLineItem>,
+    val customer_id: Int = 0,
+    val customer_note: String? = null,
+    val meta_data: List<WooMetaData>? = null
+)
+
+data class WooOrderUpdateRequest(
+    val status: String? = null,
     val customer_note: String? = null,
     val meta_data: List<WooMetaData>? = null
 )
 
 data class WooMetaData(
     val key: String,
-    val value: String
+    val value: Any?  // Can be String, Number, Object, etc.
 )
 
 data class WooOrderResponse(
@@ -90,6 +99,7 @@ data class WooOrderResponse(
     val number: String,
     val status: String,
     val total: String,
+    val customer_id: Int = 0,
     val date_created: String? = null,
     val payment_method: String? = null,
     val payment_method_title: String? = null,
@@ -132,4 +142,14 @@ data class FilterParams(
     val attributeTerm: Int? = null,
     val page: Int = 1,
     val perPage: Int = 20
+)
+
+// Update request for customer
+data class WooCustomerUpdateRequest(
+    val email: String? = null,
+    val first_name: String? = null,
+    val last_name: String? = null,
+    val billing: WooBilling? = null,
+    val shipping: WooShipping? = null,
+    val meta_data: List<WooMetaData>? = null
 )

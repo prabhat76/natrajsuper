@@ -134,9 +134,10 @@ class CategoriesFragment : Fragment() {
                 if (categories.isNotEmpty()) {
                     allCategories = categories
                     categoryAdapter = CategoryAdapter(categories) { category ->
-                        val intent = android.content.Intent(requireContext(), AllProductsActivity::class.java)
-                        intent.putExtra("extra_category_id", category.id)
-                        intent.putExtra("extra_category_name", category.name)
+                        // Open dedicated CategoryProductsActivity with proper extras
+                        val intent = android.content.Intent(requireContext(), com.example.natraj.ui.activities.CategoryProductsActivity::class.java)
+                        intent.putExtra("category_id", category.id)
+                        intent.putExtra("category_name", category.name)
                         startActivity(intent)
                     }
                     categoriesRecycler.adapter = categoryAdapter

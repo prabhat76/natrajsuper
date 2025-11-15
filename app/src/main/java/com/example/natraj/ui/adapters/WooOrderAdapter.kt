@@ -3,8 +3,10 @@ package com.example.natraj
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.natraj.data.woo.WooOrderResponse
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -15,6 +17,7 @@ class WooOrderAdapter(
 ) : RecyclerView.Adapter<WooOrderAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val productImage: ImageView = view.findViewById(R.id.order_product_image)
         val orderId: TextView = view.findViewById(R.id.order_id)
         val orderDate: TextView = view.findViewById(R.id.order_date)
         val orderStatus: TextView = view.findViewById(R.id.order_status)
@@ -30,6 +33,19 @@ class WooOrderAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val order = orders[position]
+        
+        // Load first product image if available
+        val firstProduct = order.line_items?.firstOrNull()
+        if (firstProduct?.image?.src != null) {
+            Glide.with(holder.itemView.context)
+                .load(firstProduct.image.src)
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
+                .centerCrop()
+                .into(holder.productImage)
+        } else {
+            holder.productImage.setImageResource(R.drawable.ic_launcher_background)
+        }
         
         holder.orderId.text = "Order #${order.number ?: order.id}"
         

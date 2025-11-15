@@ -13,6 +13,7 @@
 
         <!-- Success Icon -->
         <TextView
+            android:id="@+id/confirmation_success_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="✓"
@@ -21,6 +22,7 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/confirmation_success_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -31,6 +33,7 @@
             android:gravity="center" />
 
         <TextView
+            android:id="@+id/confirmation_success_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -240,10 +243,23 @@
 
         <!-- Buttons -->
         <Button
-            android:id="@+id/confirmation_cancel_order_btn"
+            android:id="@+id/confirmation_refresh_status_btn"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="24dp"
+            android:background="@drawable/bg_button_outline"
+            android:text="REFRESH ORDER STATUS"
+            android:textColor="@color/primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:visibility="gone" />
+        
+        <Button
+            android:id="@+id/confirmation_cancel_order_btn"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="12dp"
             android:background="@drawable/bg_button_outline"
             android:text="CANCEL ORDER"
             android:textColor="#D32F2F"

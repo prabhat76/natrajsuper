@@ -10,7 +10,10 @@ import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
 import com.example.natraj.data.WooRepository
 import com.example.natraj.data.woo.*
+import com.example.natraj.ui.activities.ErrorActivity
 import com.example.natraj.util.CustomToast
+import com.example.natraj.util.FormValidator
+import com.example.natraj.util.LocationHelper
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Dispatchers
@@ -27,9 +30,14 @@ class QuickCheckoutActivity : AppCompatActivity() {
     
     // Customer Details
     private lateinit var nameInput: TextInputEditText
+    private lateinit var nameInputLayout: TextInputLayout
     private lateinit var phoneInput: TextInputEditText
+    private lateinit var phoneInputLayout: TextInputLayout
     private lateinit var addressInput: TextInputEditText
+    private lateinit var addressInputLayout: TextInputLayout
     private lateinit var pincodeInput: TextInputEditText
+    private lateinit var pincodeInputLayout: TextInputLayout
+    private lateinit var detectLocationButton: Button
     
     // Payment Method
     private lateinit var codRadio: RadioButton
@@ -76,9 +84,14 @@ class QuickCheckoutActivity : AppCompatActivity() {
         totalPriceText = findViewById(R.id.total_price)
         
         nameInput = findViewById(R.id.name_input)
+        nameInputLayout = nameInput.parent.parent as TextInputLayout
         phoneInput = findViewById(R.id.phone_input)
+        phoneInputLayout = phoneInput.parent.parent as TextInputLayout
         addressInput = findViewById(R.id.address_input)
+        addressInputLayout = addressInput.parent.parent as TextInputLayout
         pincodeInput = findViewById(R.id.pincode_input)
+        pincodeInputLayout = pincodeInput.parent.parent as TextInputLayout
+        detectLocationButton = findViewById(R.id.detect_location_button)
         
         paymentGroup = findViewById(R.id.payment_group)
         codRadio = findViewById(R.id.cod_radio)
@@ -112,7 +125,34 @@ class QuickCheckoutActivity : AppCompatActivity() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             quantitySpinner.adapter = adapter
             
+            // Pre-fill user info if logged in
+            if (AuthManager.isLoggedIn()) {
+                nameInput.setText(AuthManager.getUserName())
+                phoneInput.setText(AuthManager.getUserPhone())
+                
+                // Load saved address if available
+                loadSavedAddress()
+            } else {
+                // Show guest warning
+                CustomToast.showInfo(this, "Continue as guest - Login to save addresses")
+            }
+            
             updateTotalPrice()
+        }
+    }
+    
+    private fun loadSavedAddress() {
+        // Only load saved addresses for logged-in users
+        if (!AuthManager.isLoggedIn()) {
+            return
+        }
+        
+        val defaultAddress = com.example.natraj.util.manager.AddressManager.getDefaultAddress()
+        defaultAddress?.let {
+            nameInput.setText(it.name)
+            phoneInput.setText(it.phone)
+            addressInput.setText(it.addressLine)
+            pincodeInput.setText(it.pincode)
         }
     }
 
@@ -140,6 +180,10 @@ class QuickCheckoutActivity : AppCompatActivity() {
             updateTotalPrice()
         }
 
+        detectLocationButton.setOnClickListener {
+            detectLocation()
+        }
+
         placeOrderButton.setOnClickListener {
             if (validateInputs()) {
                 placeOrder()
@@ -156,29 +200,85 @@ class QuickCheckoutActivity : AppCompatActivity() {
     }
 
     private fun validateInputs(): Boolean {
-        if (nameInput.text.toString().trim().isEmpty()) {
-            nameInput.error = "Name is required"
-            return false
-        }
+        // Validate name
+        val nameValidation = FormValidator.validateName(nameInput.text.toString().trim())
+        FormValidator.setError(nameInputLayout, nameValidation)
+        
+        // Validate phone
+        val phoneValidation = FormValidator.validatePhone(phoneInput.text.toString().trim())
+        FormValidator.setError(phoneInputLayout, phoneValidation)
+        
+        // Validate address
+        val addressValidation = FormValidator.validateAddress(addressInput.text.toString().trim())
+        FormValidator.setError(addressInputLayout, addressValidation)
+        
+        // Validate pincode
+        val pincodeValidation = FormValidator.validatePincode(pincodeInput.text.toString().trim())
+        FormValidator.setError(pincodeInputLayout, pincodeValidation)
 
-        val phone = phoneInput.text.toString().trim()
-        if (phone.isEmpty() || phone.length != 10) {
-            phoneInput.error = "Valid 10-digit phone number required"
-            return false
+        return FormValidator.validateAllFields(
+            nameValidation,
+            phoneValidation,
+            addressValidation,
+            pincodeValidation
+        )
+    }
+    
+    private fun detectLocation() {
+        if (!LocationHelper.hasLocationPermission(this)) {
+            LocationHelper.requestLocationPermission(this)
+            return
         }
-
-        if (addressInput.text.toString().trim().isEmpty()) {
-            addressInput.error = "Address is required"
-            return false
+        
+        if (!LocationHelper.isLocationEnabled(this)) {
+            CustomToast.showWarning(this, "Please enable location services in settings")
+            return
         }
-
-        val pincode = pincodeInput.text.toString().trim()
-        if (pincode.isEmpty() || pincode.length != 6) {
-            pincodeInput.error = "Valid 6-digit pincode required"
-            return false
+        
+        detectLocationButton.isEnabled = false
+        detectLocationButton.text = "Detecting..."
+        
+        lifecycleScope.launch {
+            try {
+                val addressInfo = withContext(Dispatchers.IO) {
+                    LocationHelper.detectAndFillAddress(this@QuickCheckoutActivity)
+                }
+                
+                addressInfo?.let {
+                    // Fill the form with detected location
+                    if (it.addressLine.isNotEmpty()) {
+                        addressInput.setText(it.addressLine)
+                    }
+                    if (it.pincode.isNotEmpty()) {
+                        pincodeInput.setText(it.pincode)
+                    }
+                    CustomToast.showSuccess(this@QuickCheckoutActivity, "Location detected successfully!")
+                } ?: run {
+                    CustomToast.showError(this@QuickCheckoutActivity, "Unable to detect location. Please enter manually.")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error detecting location", e)
+                CustomToast.showError(this@QuickCheckoutActivity, "Failed to detect location")
+            } finally {
+                detectLocationButton.isEnabled = true
+                detectLocationButton.text = "📍 Detect My Location"
+            }
         }
-
-        return true
+    }
+    
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == LocationHelper.LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                detectLocation()
+            } else {
+                CustomToast.showWarning(this, "Location permission required to auto-detect address")
+            }
+        }
     }
 
     private fun placeOrder() {
@@ -186,6 +286,22 @@ class QuickCheckoutActivity : AppCompatActivity() {
         
         if (!validateInputs()) {
             return
+        }
+        
+        // Validate minimum order amount
+        product?.let {
+            val subtotal = it.price * quantity
+            val MINIMUM_ORDER_AMOUNT = 700.0
+            
+            if (subtotal < MINIMUM_ORDER_AMOUNT) {
+                CustomToast.showError(
+                    this,
+                    "Minimum order amount is ₹${MINIMUM_ORDER_AMOUNT.toInt()}. Current: ₹${subtotal.toInt()}",
+                    Toast.LENGTH_LONG
+                )
+                Log.w(TAG, "Order below minimum amount: ₹${subtotal.toInt()}")
+                return
+            }
         }
         
         val paymentMethod = if (codRadio.isChecked) "cod" else "online"
@@ -267,6 +383,7 @@ class QuickCheckoutActivity : AppCompatActivity() {
                         paymentMethod = paymentMethod,
                         paymentTitle = paymentTitle,
                         setPaid = paymentMethod != "cod",
+                        customerId = AuthManager.getCustomerId(),
                         customerNote = "Quick checkout order",
                         metaData = metaData
                     )
@@ -275,9 +392,30 @@ class QuickCheckoutActivity : AppCompatActivity() {
                 progressBar?.visibility = View.GONE
                 placeOrderButton.isEnabled = true
                 
+                // Validate response
+                if (response.id <= 0) {
+                    Log.e(TAG, "✗ Invalid order response")
+                    ErrorActivity.showFromErrorType(
+                        this@QuickCheckoutActivity,
+                        com.example.natraj.util.error.ErrorType.INVALID_RESPONSE,
+                        showRetry = true
+                    )
+                    return@launch
+                }
+                
                 Log.d(TAG, "✓ Order created successfully!")
                 Log.d(TAG, "Order ID: ${response.id}")
                 Log.d(TAG, "Order Number: ${response.number}")
+                
+                // Show notification for order placed
+                com.example.natraj.util.notification.NotificationHelper.showOrderPlacedNotification(
+                    this@QuickCheckoutActivity,
+                    response.id.toString(),
+                    response.number
+                )
+                
+                // Save address for future use
+                saveAddressForFuture()
                 
                 // Navigate to confirmation with tracking
                 val intent = Intent(this@QuickCheckoutActivity, OrderConfirmationActivity::class.java)
@@ -295,11 +433,34 @@ class QuickCheckoutActivity : AppCompatActivity() {
                 placeOrderButton.isEnabled = true
                 
                 Log.e(TAG, "✗ Order placement failed", e)
-                CustomToast.showError(this@QuickCheckoutActivity, 
-                    "Failed to place order: ${e.message}", 
-                    Toast.LENGTH_LONG)
+                
+                // Use the new error handling system
+                ErrorActivity.showFromException(
+                    this@QuickCheckoutActivity,
+                    e,
+                    showRetry = true
+                )
             }
         }
+    }
+    
+    private fun saveAddressForFuture() {
+        // Only save addresses for logged-in users
+        if (!AuthManager.isLoggedIn()) {
+            Log.d(TAG, "Guest checkout - address not saved")
+            return
+        }
+        
+        val address = com.example.natraj.util.manager.SavedAddress(
+            name = nameInput.text.toString().trim(),
+            phone = phoneInput.text.toString().trim(),
+            addressLine = addressInput.text.toString().trim(),
+            pincode = pincodeInput.text.toString().trim(),
+            isDefault = !com.example.natraj.util.manager.AddressManager.hasAddresses() // First address is default
+        )
+        
+        com.example.natraj.util.manager.AddressManager.saveAddress(address)
+        Log.d(TAG, "✓ Address saved for future orders")
     }
 
     override fun onSupportNavigateUp(): Boolean {

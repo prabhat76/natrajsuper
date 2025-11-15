@@ -65,9 +65,30 @@ class CartFragment : Fragment() {
                 return@setOnClickListener
             }
             
-            // Navigate to address page
-            val intent = Intent(requireContext(), AddressActivity::class.java)
-            startActivity(intent)
+            // Check minimum order amount
+            val items = CartManager.getItems()
+            val subtotal = items.sumOf { it.product.price * it.quantity }
+            val MINIMUM_ORDER_AMOUNT = 700.0
+            
+            if (subtotal < MINIMUM_ORDER_AMOUNT) {
+                if (isAdded && context != null) {
+                    Toast.makeText(
+                        requireContext(), 
+                        "Minimum order amount is ₹${MINIMUM_ORDER_AMOUNT.toInt()}. Current: ₹${subtotal.toInt()}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                return@setOnClickListener
+            }
+            
+            // Check login status before checkout
+            if (!AuthManager.isLoggedIn()) {
+                showLoginPromptForCheckout()
+            } else {
+                // Navigate to address page
+                val intent = Intent(requireContext(), AddressActivity::class.java)
+                startActivity(intent)
+            }
         }
 
         refresh()
@@ -111,6 +132,23 @@ class CartFragment : Fragment() {
             summaryCard.visibility = View.GONE
             recycler.visibility = View.GONE
         }
+    }
+    
+    private fun showLoginPromptForCheckout() {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Login for Better Experience")
+            .setMessage("Login to access saved addresses and track your orders. You can also continue as guest.")
+            .setPositiveButton("Login") { _, _ ->
+                val intent = Intent(requireContext(), LoginActivity::class.java)
+                startActivity(intent)
+            }
+            .setNegativeButton("Continue as Guest") { _, _ ->
+                // Allow guest checkout
+                val intent = Intent(requireContext(), AddressActivity::class.java)
+                startActivity(intent)
+            }
+            .setNeutralButton("Cancel", null)
+            .show()
     }
 }
 

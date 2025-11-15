@@ -1,7 +1,8 @@
 package com.example.natraj.util.tracking
 
 import android.content.Context
-import com.example.natraj.data.WooRepository
+import com.example.natraj.data.repository.WooRepository
+import com.example.natraj.data.woo.WooMetaData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -30,16 +31,17 @@ class DelhiveryTrackingManager(private val context: Context) {
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val updateBody = mapOf(
-                    "meta_data" to listOf(
-                        mapOf("key" to META_KEY_TRACKING_NUMBER, "value" to trackingNumber),
-                        mapOf("key" to META_KEY_TRACKING_PROVIDER, "value" to TRACKING_PROVIDER),
-                        mapOf("key" to META_KEY_AWB_NUMBER, "value" to (awbNumber ?: trackingNumber))
-                    ),
-                    "status" to "processing" // Update status to processing when tracking is added
+                val metaData = listOf(
+                    WooMetaData(META_KEY_TRACKING_NUMBER, trackingNumber),
+                    WooMetaData(META_KEY_TRACKING_PROVIDER, TRACKING_PROVIDER),
+                    WooMetaData(META_KEY_AWB_NUMBER, awbNumber ?: trackingNumber)
                 )
                 
-                wooRepository.updateOrder(orderId, updateBody)
+                wooRepository.updateOrder(
+                    orderId = orderId,
+                    status = "processing",
+                    metaData = metaData
+                )
                 Result.success(Unit)
             } catch (e: Exception) {
                 android.util.Log.e("DelhiveryTracking", "Failed to add tracking", e)
@@ -57,9 +59,9 @@ class DelhiveryTrackingManager(private val context: Context) {
                 val order = wooRepository.getOrder(orderId)
                 val metaData = order.meta_data ?: emptyList()
                 
-                val trackingNumber = metaData.find { it.key == META_KEY_TRACKING_NUMBER }?.value
-                val provider = metaData.find { it.key == META_KEY_TRACKING_PROVIDER }?.value
-                val awbNumber = metaData.find { it.key == META_KEY_AWB_NUMBER }?.value
+                val trackingNumber = metaData.find { it.key == META_KEY_TRACKING_NUMBER }?.value?.toString()
+                val provider = metaData.find { it.key == META_KEY_TRACKING_PROVIDER }?.value?.toString()
+                val awbNumber = metaData.find { it.key == META_KEY_AWB_NUMBER }?.value?.toString()
                 
                 if (trackingNumber.isNullOrBlank()) {
                     null
@@ -88,9 +90,8 @@ class DelhiveryTrackingManager(private val context: Context) {
         return withContext(Dispatchers.IO) {
             try {
                 val wooStatus = mapTrackingStatusToWooStatus(trackingStatus)
-                val updateBody = mapOf("status" to wooStatus)
                 
-                wooRepository.updateOrder(orderId, updateBody)
+                wooRepository.updateOrder(orderId, status = wooStatus)
                 Result.success(Unit)
             } catch (e: Exception) {
                 android.util.Log.e("DelhiveryTracking", "Failed to update order status", e)

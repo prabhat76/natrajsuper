@@ -24,7 +24,7 @@
             android:layout_height="380dp"
             android:scaleType="centerCrop"
             android:contentDescription="Blog post image"
-            tools:src="@drawable/natraj_logo_official" />
+            tools:src="@drawable/natraj_logo" />
 
         <!-- Content Container -->
         <LinearLayout

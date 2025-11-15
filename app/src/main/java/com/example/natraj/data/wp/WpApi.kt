@@ -10,7 +10,11 @@ data class WpRendered(val rendered: String)
 
 data class WpMedia(@SerializedName("source_url") val sourceUrl: String?)
 
-data class WpEmbedded(@SerializedName("wp:featuredmedia") val media: List<WpMedia>?)
+data class WpEmbedded(
+    @SerializedName("wp:featuredmedia") val media: List<WpMedia>?,
+    @SerializedName("wp:term") val terms: List<List<WpCategory>>?,
+    @SerializedName("author") val author: List<WpUser>?
+)
 
 data class WpPost(
     val id: Int,
@@ -18,6 +22,9 @@ data class WpPost(
     val link: String,
     val title: WpRendered,
     val excerpt: WpRendered,
+    val content: WpRendered,
+    val categories: List<Int>,
+    val author: Int,
     @SerializedName("_embedded") val embedded: WpEmbedded?
 )
 

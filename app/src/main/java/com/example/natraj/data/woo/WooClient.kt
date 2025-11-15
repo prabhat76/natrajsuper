@@ -103,4 +103,13 @@ class WooPrefs(private val context: Context) {
     var consumerSecret: String?
         get() = sp.getString("consumer_secret", null)
         set(value) = sp.edit().putString("consumer_secret", value).apply()
+
+    // Dynamic theme colors
+    var primaryColor: String?
+        get() = sp.getString("primary_color", "#1976D2")
+        set(value) = sp.edit().putString("primary_color", value).apply()
+
+    var accentColor: String?
+        get() = sp.getString("accent_color", "#2196F3")
+        set(value) = sp.edit().putString("accent_color", value).apply()
 }

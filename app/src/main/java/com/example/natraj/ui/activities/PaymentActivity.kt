@@ -120,6 +120,20 @@ class PaymentActivity : AppCompatActivity() {
     }
 
     private fun placeOrder(paymentGroup: RadioGroup, cartItems: List<CartItem>, totalAmount: Double) {
+        // Validate minimum order amount
+        val subtotal = cartItems.sumOf { it.product.price * it.quantity }
+        val MINIMUM_ORDER_AMOUNT = 700.0
+        
+        if (subtotal < MINIMUM_ORDER_AMOUNT) {
+            CustomToast.showError(
+                this,
+                "Minimum order amount is ₹${MINIMUM_ORDER_AMOUNT.toInt()}. Current: ₹${subtotal.toInt()}",
+                Toast.LENGTH_LONG
+            )
+            Log.w(TAG, "Order below minimum amount: ₹${subtotal.toInt()}")
+            return
+        }
+        
         val selectedId = paymentGroup.checkedRadioButtonId
         if (selectedId == -1) {
             CustomToast.showWarning(this, "Please select a payment method")
@@ -203,6 +217,33 @@ class PaymentActivity : AppCompatActivity() {
                 
                 Log.d(TAG, "Creating WooCommerce order...")
                 
+                // Get customer ID if logged in
+                val customerId = AuthManager.getCustomerId()
+                val isLoggedIn = AuthManager.isLoggedIn()
+                Log.d(TAG, "Is logged in: $isLoggedIn")
+                Log.d(TAG, "Customer ID for order: $customerId")
+                
+                if (customerId == 0 || !isLoggedIn) {
+                    withContext(Dispatchers.Main) {
+                        progressBar.visibility = View.GONE
+                        placeOrderButton.isEnabled = true
+                        
+                        androidx.appcompat.app.AlertDialog.Builder(this@PaymentActivity)
+                            .setTitle("Login Required")
+                            .setMessage("Please login to place an order. Your cart items will be saved.")
+                            .setPositiveButton("Login") { _, _ ->
+                                val intent = Intent(this@PaymentActivity, LoginActivity::class.java)
+                                startActivity(intent)
+                                finish()
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
+                    return@launch
+                }
+                
+                Log.d(TAG, "✓ Placing order for customer ID: $customerId")
+                
                 // Place order
                 val response = withContext(Dispatchers.IO) {
                     repo.placeOrder(
@@ -212,6 +253,7 @@ class PaymentActivity : AppCompatActivity() {
                         paymentMethod = gatewayId,
                         paymentTitle = paymentTitle,
                         setPaid = gatewayId != "cod",
+                        customerId = customerId,
                         customerNote = "Order placed via Natraj Super App",
                         metaData = metaData
                     )
@@ -225,6 +267,13 @@ class PaymentActivity : AppCompatActivity() {
                 Log.d(TAG, "Order Number: ${response.number}")
                 Log.d(TAG, "Order Status: ${response.status}")
                 Log.d(TAG, "Order Total: ${response.total}")
+                
+                // Show notification for order placed
+                com.example.natraj.util.notification.NotificationHelper.showOrderPlacedNotification(
+                    this@PaymentActivity,
+                    response.id.toString(),
+                    response.number
+                )
                 
                 // Clear cart
                 CartManager.clear()

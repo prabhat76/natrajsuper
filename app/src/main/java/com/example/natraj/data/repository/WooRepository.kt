@@ -84,6 +84,7 @@ class WooRepository(private val context: Context) {
         paymentMethod: String = "cod",
         paymentTitle: String = "Cash on Delivery",
         setPaid: Boolean = false,
+        customerId: Int = 0,
         customerNote: String? = null,
         metaData: List<WooMetaData>? = null
     ): WooOrderResponse {
@@ -94,6 +95,7 @@ class WooRepository(private val context: Context) {
             billing = billing,
             shipping = shipping,
             line_items = lineItems,
+            customer_id = customerId,
             customer_note = customerNote,
             meta_data = metaData
         )
@@ -118,12 +120,80 @@ class WooRepository(private val context: Context) {
         )
     }
     
-    suspend fun updateOrder(orderId: Int, updates: Map<String, Any>): WooOrderResponse {
-        return api.updateOrder(orderId, updates)
+    suspend fun getRecentOrders(limit: Int = 50): List<WooOrderResponse> {
+        return api.getOrders(perPage = limit, order = "desc")
+    }
+    
+    suspend fun getOrderById(orderId: Int): WooOrderResponse? {
+        return try {
+            api.getOrder(orderId)
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    suspend fun updateOrder(orderId: Int, status: String? = null, customerNote: String? = null, metaData: List<WooMetaData>? = null): WooOrderResponse {
+        val body = WooOrderUpdateRequest(
+            status = status,
+            customer_note = customerNote,
+            meta_data = metaData
+        )
+        return api.updateOrder(orderId, body)
     }
     
     suspend fun getPaymentGateways(): List<WooPaymentGateway> {
         return api.getPaymentGateways()
+    }
+    
+    // Customer Management
+    suspend fun createCustomer(
+        email: String,
+        firstName: String,
+        lastName: String,
+        username: String,
+        password: String,
+        billing: WooBilling? = null,
+        shipping: WooShipping? = null
+    ): WooCustomer {
+        val request = WooCreateCustomerRequest(
+            email = email,
+            first_name = firstName,
+            last_name = lastName,
+            username = username,
+            password = password,
+            billing = billing,
+            shipping = shipping
+        )
+        return api.createCustomer(request)
+    }
+    
+    suspend fun getCustomer(customerId: Int): WooCustomer {
+        return api.getCustomer(customerId)
+    }
+    
+    suspend fun getCustomerByEmail(email: String): WooCustomer? {
+        val customers = api.getCustomers(email = email, perPage = 1)
+        return customers.firstOrNull()
+    }
+    
+    suspend fun updateCustomer(
+        customerId: Int,
+        email: String? = null,
+        firstName: String? = null,
+        lastName: String? = null,
+        billing: WooBilling? = null,
+        shipping: WooShipping? = null,
+        metaData: List<WooMetaData>? = null
+    ): WooCustomer {
+        val body = WooCustomerUpdateRequest(
+            email = email,
+            first_name = firstName,
+            last_name = lastName,
+            billing = billing,
+            shipping = shipping,
+            meta_data = metaData
+        )
+        return api.updateCustomer(customerId, body)
     }
 
     private fun mapProduct(p: WooProduct): Product {

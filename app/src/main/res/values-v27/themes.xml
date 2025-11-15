@@ -6,7 +6,7 @@
         <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorOnPrimary">@color/text_on_primary</item>
 
-        <!-- Secondary/Accent Colors - Flipkart Orange -->
+        <!-- Secondary/Accent Colors - Blue -->
         <item name="colorSecondary">@color/accent_orange</item>
         <item name="colorSecondaryVariant">@color/buy_now_orange</item>
         <item name="colorOnSecondary">@color/white</item>
@@ -40,13 +40,13 @@
     <style name="FlipkartButton" parent="Widget.Material3.Button">
         <item name="backgroundTint">@color/primary</item>
         <item name="android:textColor">@color/white</item>
-        <item name="cornerRadius">4dp</item>
+        <item name="cornerRadius">24dp</item>
     </style>
 
     <style name="FlipkartButtonOrange" parent="Widget.Material3.Button">
         <item name="backgroundTint">@color/buy_now_orange</item>
         <item name="android:textColor">@color/white</item>
-        <item name="cornerRadius">4dp</item>
+        <item name="cornerRadius">24dp</item>
     </style>
 
     <style name="FlipkartCard" parent="Widget.Material3.CardView.Elevated">

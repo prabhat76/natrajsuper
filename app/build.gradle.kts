@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.example.natraj"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.natraj"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -80,6 +80,15 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    
+    // Kafka client for real-time notifications
+    implementation("org.apache.kafka:kafka-clients:3.6.0")
+    
+    // Google Play Services for Location
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    
+    // WorkManager for background tasks
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
     
     // PDF Viewer for in-app reading
     implementation("com.github.mhiew:android-pdf-viewer:3.2.0-beta.1") {

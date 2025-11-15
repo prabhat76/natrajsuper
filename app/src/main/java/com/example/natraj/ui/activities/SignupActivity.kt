@@ -2,11 +2,22 @@ package com.example.natraj
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.natraj.data.WooRepository
+import com.example.natraj.ui.activities.ErrorActivity
+import com.example.natraj.util.CustomToast
+import com.example.natraj.util.error.ErrorType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SignupActivity : AppCompatActivity() {
     
@@ -48,7 +59,7 @@ class SignupActivity : AppCompatActivity() {
             val confirmPassword = confirmPasswordInput.text.toString().trim()
             
             if (validateInput(name, email, phone, password, confirmPassword)) {
-                performSignup(name, email, phone)
+                performSignup(name, email, phone, password)
             }
         }
         
@@ -115,14 +126,56 @@ class SignupActivity : AppCompatActivity() {
         return true
     }
     
-    private fun performSignup(name: String, email: String, phone: String) {
-        // In a real app, this would call an API
-        // For now, we'll just store the user data
+    private fun performSignup(name: String, email: String, phone: String, password: String) {
+        // Disable button and show progress
+        signupBtn.isEnabled = false
+        signupBtn.text = "Creating account..."
         
-        AuthManager.login(name, email, phone)
-        
-        Toast.makeText(this, "Account created successfully! Welcome, $name", Toast.LENGTH_SHORT).show()
-        navigateToMain()
+        lifecycleScope.launch {
+            try {
+                // Create WooCommerce customer
+                val repo = WooRepository(this@SignupActivity)
+                
+                val nameParts = name.split(" ", limit = 2)
+                val firstName = nameParts.getOrNull(0) ?: name
+                val lastName = nameParts.getOrNull(1) ?: ""
+                
+                // Create username from email
+                val username = email.substringBefore("@").replace("[^a-zA-Z0-9]".toRegex(), "")
+                
+                val customer = withContext(Dispatchers.IO) {
+                    repo.createCustomer(
+                        email = email,
+                        firstName = firstName,
+                        lastName = lastName,
+                        username = username,
+                        password = password
+                    )
+                }
+                
+                // Save auth data with customer ID
+                AuthManager.login(name, email, phone, customer.id)
+                
+                CustomToast.showSuccess(this@SignupActivity, "Account created successfully! Welcome, $name")
+                navigateToMain()
+                
+            } catch (e: Exception) {
+                Log.e("SignupActivity", "Signup failed", e)
+                signupBtn.isEnabled = true
+                signupBtn.text = "SIGN UP"
+                
+                // Handle specific errors
+                val errorMessage = when {
+                    e.message?.contains("email", ignoreCase = true) == true -> 
+                        "Email already registered. Please login instead."
+                    e.message?.contains("username", ignoreCase = true) == true -> 
+                        "Username already taken. Please try a different email."
+                    else -> "Unable to create account. Please try again."
+                }
+                
+                CustomToast.showError(this@SignupActivity, errorMessage, Toast.LENGTH_LONG)
+            }
+        }
     }
     
     private fun navigateToMain() {

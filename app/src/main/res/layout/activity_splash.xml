@@ -32,12 +32,12 @@
                 app:cardElevation="12dp">
 
                 <!-- App Logo -->
-                <ImageView
+                    <ImageView
                     android:id="@+id/logo_image"
                     android:layout_width="240dp"
                     android:layout_height="240dp"
                     android:padding="20dp"
-                    android:src="@drawable/natraj_logo_official"
+                    android:src="@drawable/natraj_logo"
                     android:scaleType="fitCenter"
                     android:contentDescription="Natraj Super Logo" />
             </androidx.cardview.widget.CardView>

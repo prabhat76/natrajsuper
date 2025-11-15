@@ -3,8 +3,10 @@ package com.example.natraj
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -14,6 +16,7 @@ class OrderAdapter(
 ) : RecyclerView.Adapter<OrderAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val productImage: ImageView = view.findViewById(R.id.order_product_image)
         val orderId: TextView = view.findViewById(R.id.order_id)
         val orderDate: TextView = view.findViewById(R.id.order_date)
         val orderStatus: TextView = view.findViewById(R.id.order_status)
@@ -30,6 +33,28 @@ class OrderAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val order = orders[position]
         val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+        
+        // Load first product image
+        val firstProduct = order.items.firstOrNull()
+        if (firstProduct != null) {
+            try {
+                if (firstProduct.product.imageUrl.isNotEmpty()) {
+                    Glide.with(holder.itemView.context)
+                        .load(firstProduct.product.imageUrl)
+                        .centerCrop()
+                        .placeholder(R.drawable.ic_launcher_background)
+                        .into(holder.productImage)
+                } else if (firstProduct.product.imageResId != 0) {
+                    holder.productImage.setImageResource(firstProduct.product.imageResId)
+                } else {
+                    holder.productImage.setImageResource(R.drawable.ic_launcher_background)
+                }
+            } catch (e: Exception) {
+                holder.productImage.setImageResource(R.drawable.ic_launcher_background)
+            }
+        } else {
+            holder.productImage.setImageResource(R.drawable.ic_launcher_background)
+        }
         
         holder.orderId.text = "Order #${order.id}"
         holder.orderDate.text = "Placed on ${dateFormat.format(order.orderDate)}"

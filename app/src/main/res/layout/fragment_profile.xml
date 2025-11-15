@@ -29,7 +29,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hello,"
+                    android:text="@string/profile_hello"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
@@ -37,7 +37,7 @@
                     android:id="@+id/profile_user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Farmer"
+                    android:text="@string/profile_guest_user"
                     android:textColor="@color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"
@@ -49,7 +49,7 @@
                 android:id="@+id/profile_user_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Login to access all features"
+                android:text="@string/profile_login_prompt"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 android:alpha="0.9"
@@ -75,7 +75,7 @@
                 <TextView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:text="📦"
+                    android:text="@string/emoji_package"
                     android:textSize="20sp"
                     android:gravity="center" />
 
@@ -84,7 +84,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="16dp"
-                    android:text="My Orders"
+                    android:text="@string/profile_my_orders"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:gravity="center_vertical" />
@@ -92,7 +92,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=">"
+                    android:text="@string/profile_arrow"
                     android:textColor="@color/text_secondary"
                     android:textSize="18sp" />
             </LinearLayout>
@@ -114,7 +114,7 @@
                 <TextView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:text="❤️"
+                    android:text="@string/emoji_heart"
                     android:textSize="20sp"
                     android:gravity="center" />
 
@@ -123,7 +123,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="16dp"
-                    android:text="My Wishlist"
+                    android:text="@string/profile_my_wishlist"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:gravity="center_vertical" />
@@ -131,7 +131,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=">"
+                    android:text="@string/profile_arrow"
                     android:textColor="@color/text_secondary"
                     android:textSize="18sp" />
             </LinearLayout>
@@ -153,7 +153,7 @@
                 <TextView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:text="📍"
+                    android:text="@string/emoji_location"
                     android:textSize="20sp"
                     android:gravity="center" />
 
@@ -162,7 +162,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="16dp"
-                    android:text="Manage Addresses"
+                    android:text="@string/profile_manage_addresses"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:gravity="center_vertical" />
@@ -170,58 +170,19 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=">"
+                    android:text="@string/profile_arrow"
                     android:textColor="@color/text_secondary"
                     android:textSize="18sp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Settings Section -->
+        <!-- Help & Logout Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@color/white"
             android:layout_marginTop="8dp">
-
-            <LinearLayout
-                android:id="@+id/profile_settings_section"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp"
-                android:background="?attr/selectableItemBackground">
-
-                <TextView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:text="⚙️"
-                    android:textSize="20sp"
-                    android:gravity="center" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="16dp"
-                    android:text="Settings"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:gravity="center_vertical" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=">"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="18sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#F0F0F0"
-                android:layout_marginStart="64dp" />
 
             <LinearLayout
                 android:id="@+id/profile_help_section"
@@ -234,7 +195,7 @@
                 <TextView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:text="❓"
+                    android:text="@string/emoji_help"
                     android:textSize="20sp"
                     android:gravity="center" />
 
@@ -243,7 +204,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="16dp"
-                    android:text="Help &amp; Support"
+                    android:text="@string/profile_help_support"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:gravity="center_vertical" />
@@ -251,7 +212,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=">"
+                    android:text="@string/profile_arrow"
                     android:textColor="@color/text_secondary"
                     android:textSize="18sp" />
             </LinearLayout>
@@ -273,7 +234,7 @@
                 <TextView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:text="🚪"
+                    android:text="@string/emoji_logout"
                     android:textSize="20sp"
                     android:gravity="center" />
 
@@ -282,7 +243,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="16dp"
-                    android:text="Logout"
+                    android:text="@string/profile_logout"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:gravity="center_vertical" />
@@ -290,7 +251,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=">"
+                    android:text="@string/profile_arrow"
                     android:textColor="@color/text_secondary"
                     android:textSize="18sp" />
             </LinearLayout>
