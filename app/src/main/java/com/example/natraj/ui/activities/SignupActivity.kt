@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.natraj.data.WooRepository
 import com.example.natraj.ui.activities.ErrorActivity
 import com.example.natraj.util.CustomToast
+import com.example.natraj.util.sync.AccountSyncManager
 import com.example.natraj.util.error.ErrorType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -155,6 +156,14 @@ class SignupActivity : AppCompatActivity() {
                 
                 // Save auth data with customer ID
                 AuthManager.login(name, email, phone, customer.id)
+                
+                // Sync account data from WooCommerce (should be empty for new accounts)
+                try {
+                    AccountSyncManager.fullSyncFromWoo(this@SignupActivity)
+                    Log.d("SignupActivity", "Account synced successfully")
+                } catch (syncException: Exception) {
+                    Log.w("SignupActivity", "Account sync failed, but signup continues", syncException)
+                }
                 
                 CustomToast.showSuccess(this@SignupActivity, "Account created successfully! Welcome, $name")
                 navigateToMain()

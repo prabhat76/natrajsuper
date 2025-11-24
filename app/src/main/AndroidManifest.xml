@@ -108,16 +108,6 @@
             android:theme="@style/Theme.Natraj.NoActionBar" />
 
         <activity
-            android:name=".CatalogueActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
-
-        <activity
-            android:name=".Product360Activity"
-            android:exported="false"
-            android:parentActivityName=".ProductDetailActivity" />
-
-        <activity
             android:name=".QuickCheckoutActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />

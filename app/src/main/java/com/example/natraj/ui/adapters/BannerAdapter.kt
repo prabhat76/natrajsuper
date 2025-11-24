@@ -27,12 +27,19 @@ class BannerAdapter(
             bannerDescription.text = banner.description
             ctaButton.text = banner.ctaText
 
-            // Load banner image
+            // Load banner image with better quality settings
             if (banner.imageUrl.isNotEmpty()) {
                 Glide.with(itemView.context)
                     .load(banner.imageUrl)
-                    .placeholder(R.drawable.ic_launcher_background)
+                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                    .skipMemoryCache(false)
+                    .placeholder(android.R.color.transparent)
+                    .error(android.R.color.transparent)
+                    .centerCrop()
                     .into(bannerImage)
+            } else {
+                // If no image URL, hide the image view to show gradient background
+                bannerImage.setImageDrawable(null)
             }
 
             itemView.setOnClickListener { onBannerClick(banner) }

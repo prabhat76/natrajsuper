@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Intent
 import com.example.natraj.data.woo.WooPrefs
 import com.example.natraj.util.notification.NotificationHelper
+import com.example.natraj.util.ThemeUtil
 import com.example.natraj.util.kafka.KafkaConfig
 import com.example.natraj.util.kafka.KafkaNotificationService
 // import com.example.natraj.util.tracking.OrderTrackingScheduler
@@ -14,6 +15,9 @@ class NatrajApplication : Application() {
         
         // Initialize WooCommerce credentials
         initializeWooCommerce()
+        
+        // Initialize theme based on device settings
+        ThemeUtil.initializeTheme(this)
         
         // Ensure global initialization of managers used across the app
         AuthManager.initialize(this)

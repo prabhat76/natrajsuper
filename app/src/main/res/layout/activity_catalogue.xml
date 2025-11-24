@@ -16,45 +16,13 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-    <!-- PDF Viewer -->
-    <com.github.barteksc.pdfviewer.PDFView
-        android:id="@+id/pdfView"
+    <!-- Products Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/products_recycler"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
-
-    <!-- Action Buttons -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_weight="1"
         android:padding="8dp"
-        android:background="@color/white"
-        android:elevation="8dp">
-
-        <Button
-            android:id="@+id/download_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"
-            android:text="Download"
-            android:drawableTop="@android:drawable/stat_sys_download"
-            android:drawableTint="@color/white"
-            android:backgroundTint="@color/primary_color"
-            android:textColor="@color/white" />
-
-        <Button
-            android:id="@+id/share_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="4dp"
-            android:text="Share"
-            android:drawableTop="@android:drawable/ic_menu_share"
-            android:drawableTint="@color/white"
-            android:backgroundTint="@color/accent_color"
-            android:textColor="@color/white" />
-    </LinearLayout>
+        android:clipToPadding="false" />
 
 </LinearLayout>

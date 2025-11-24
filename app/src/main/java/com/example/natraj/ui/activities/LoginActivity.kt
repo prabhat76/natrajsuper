@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.natraj.data.WooRepository
 import com.example.natraj.util.CustomToast
+import com.example.natraj.util.sync.AccountSyncManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -111,6 +112,14 @@ class LoginActivity : AppCompatActivity() {
                     
                     AuthManager.login(displayName, email, "", customer.id)
                     
+                    // Sync account data from WooCommerce
+                    try {
+                        AccountSyncManager.fullSyncFromWoo(this@LoginActivity)
+                        Log.d("LoginActivity", "Account synced successfully")
+                    } catch (syncException: Exception) {
+                        Log.w("LoginActivity", "Account sync failed, but login continues", syncException)
+                    }
+                    
                     CustomToast.showSuccess(this@LoginActivity, "Welcome back, $displayName!")
                     navigateToMain()
                 } else {
@@ -132,6 +141,14 @@ class LoginActivity : AppCompatActivity() {
                 // For development: allow local login if WooCommerce is not configured
                 val name = email.substringBefore("@")
                 AuthManager.login(name, email, "", 0)
+                
+                // Try to sync if possible (won't work for local login, but safe to call)
+                try {
+                    AccountSyncManager.fullSyncFromWoo(this@LoginActivity)
+                } catch (syncException: Exception) {
+                    Log.d("LoginActivity", "Sync not available for local login")
+                }
+                
                 CustomToast.showWarning(this@LoginActivity, "Logged in locally (WooCommerce unavailable)")
                 navigateToMain()
             }

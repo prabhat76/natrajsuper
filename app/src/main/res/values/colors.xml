@@ -54,4 +54,5 @@
     <color name="discount_text">#F44336</color>
     <color name="accent_yellow">#FFB300</color>
     <color name="light_gray">#E0E0E0</color>
+    <color name="overlay_dark">#80000000</color>
 </resources>

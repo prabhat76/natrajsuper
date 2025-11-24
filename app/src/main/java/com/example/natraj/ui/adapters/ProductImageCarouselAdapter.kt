@@ -23,10 +23,10 @@ class ProductImageCarouselAdapter(private val images: List<String>) :
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         Glide.with(holder.itemView.context)
             .load(images[position])
-            .placeholder(R.drawable.ic_launcher_background)
-            .error(R.drawable.ic_launcher_background)
-            .fallback(R.drawable.ic_launcher_background)
-            .centerCrop()
+            .placeholder(R.color.background_light)
+            .error(R.color.background_light)
+            .fallback(R.color.background_light)
+            .centerInside()
             .into(holder.imageView)
     }
 

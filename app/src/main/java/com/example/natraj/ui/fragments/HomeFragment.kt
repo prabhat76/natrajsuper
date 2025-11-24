@@ -75,7 +75,6 @@ class HomeFragment : Fragment() {
         setupBanners()
         setupCategories()
         setupOffers()
-        setupProducts()
         setupRecommendedProducts()
         setupBlog()
         setupClickListeners()
@@ -87,7 +86,6 @@ class HomeFragment : Fragment() {
         bannerViewPager = view.findViewById(R.id.banner_viewpager)
         categoriesRecycler = view.findViewById(R.id.categories_recycler)
         offersRecycler = view.findViewById(R.id.offers_recycler)
-        productsRecycler = view.findViewById(R.id.products_recycler)
         recommendedProductsRecycler = view.findViewById(R.id.recommended_products_recycler)
         blogRecycler = view.findViewById(R.id.blog_recycler)
         searchBar = view.findViewById(R.id.search_bar)
@@ -96,7 +94,6 @@ class HomeFragment : Fragment() {
         cartBadge = view.findViewById(R.id.cart_badge)
         whatsappOrderBtn = view.findViewById(R.id.whatsapp_order_btn)
         viewCatalogueBtn = view.findViewById(R.id.view_catalogue_btn)
-        viewAllProductsBtn = view.findViewById(R.id.view_all_products)
         viewAllOffersBtn = view.findViewById(R.id.view_all_offers)
         viewAllRecommendedBtn = view.findViewById(R.id.view_all_recommended)
         viewAllBlogBtn = view.findViewById(R.id.view_all_blog)
@@ -247,46 +244,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun setupProducts() {
-        // Horizontal layout
-        productsRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        productsRecycler.setItemViewCacheSize(15)
-
-        val prefs = com.example.natraj.data.woo.WooPrefs(requireContext())
-        val baseUrl = prefs.baseUrl
-        val ck = prefs.consumerKey
-        val cs = prefs.consumerSecret
-        
-        android.util.Log.d("HomeFragment", "setupProducts: baseUrl=$baseUrl, ck=${ck?.take(5)}..., cs=${cs?.take(5)}...")
-        val canUseWoo = !baseUrl.isNullOrBlank() && !ck.isNullOrBlank() && !cs.isNullOrBlank()
-
-        if (canUseWoo) {
-            android.util.Log.d("HomeFragment", "Fetching featured products...")
-            viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    val repo = com.example.natraj.data.WooRepository(requireContext())
-                    val products = withContext(Dispatchers.IO) {
-                        android.util.Log.d("HomeFragment", "Calling repo.getProducts(featured=true)...")
-                        repo.getProducts(com.example.natraj.data.woo.FilterParams(perPage = 20), featured = true)
-                    }
-                    android.util.Log.d("HomeFragment", "Featured products fetched: ${products.size}")
-                    if (products.isEmpty()) return@launch
-                    productsRecycler.adapter = HorizontalProductAdapter(products) { product ->
-                        val intent = Intent(requireContext(), ProductDetailActivity::class.java)
-                        intent.putExtra("product", product)
-                        startActivity(intent)
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("HomeFragment", "Woo featured failed: ${e.message}", e)
-                    showToast("Failed to load featured products: ${e.message}")
-                }
-            }
-        } else {
-            android.util.Log.w("HomeFragment", "setupProducts: Credentials missing")
-            showToast("Configure WordPress settings to load products")
-        }
-    }
-
     private fun setupRecommendedProducts() {
         val prefs = com.example.natraj.data.woo.WooPrefs(requireContext())
         val canUseWoo = !prefs.baseUrl.isNullOrBlank() && !prefs.consumerKey.isNullOrBlank() && !prefs.consumerSecret.isNullOrBlank()
@@ -379,17 +336,6 @@ class HomeFragment : Fragment() {
 
         viewAllOffersBtn.setOnClickListener {
             showToast("Viewing all offers")
-        }
-
-        viewAllProductsBtn.setOnClickListener {
-            android.util.Log.d("HomeFragment", "View All Products clicked!")
-            try {
-                val intent = Intent(requireContext(), AllProductsActivity::class.java)
-                startActivity(intent)
-            } catch (e: Exception) {
-                android.util.Log.e("HomeFragment", "Error opening AllProductsActivity", e)
-                showToast("Error: ${e.message}")
-            }
         }
 
         viewAllRecommendedBtn.setOnClickListener {

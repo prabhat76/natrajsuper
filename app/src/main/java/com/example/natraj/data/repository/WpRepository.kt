@@ -8,37 +8,31 @@ import com.example.natraj.data.wp.WpClient
 import com.example.natraj.data.wp.WpPage as WpApiPage
 import com.example.natraj.data.wp.WpCategory as WpApiCategory
 import com.example.natraj.data.wp.WpTag as WpApiTag
-import com.example.natraj.data.wp.WpUser as WpApiUser
+import com.example.natraj.data.wp.WpMediaDetails
 import com.example.natraj.data.wp.WpMediaItem as WpApiMediaItem
 
 class WpRepository(private val context: Context) {
     val api by lazy { WpClient.api(context) }
 
-    suspend fun getRecentPosts(limit: Int = 5): List<BlogPost> {
-        val posts = api.getPosts(perPage = limit)
-        
-        // Fetch categories and authors for mapping if needed
-        val categories = try { getWpCategories() } catch (e: Exception) { emptyList() }
-        val users = try { getUsers() } catch (e: Exception) { emptyList() }
-        
+    suspend fun getRecentPosts(limit: Int = 10): List<BlogPost> {
+        val posts = api.getPosts(perPage = limit, page = 1, embed = 1)
+
         return posts.map { p ->
             val img = p.embedded?.media?.firstOrNull()?.sourceUrl ?: ""
-            
+
             // Extract category name from embedded or fallback
             val categoryName = p.embedded?.terms?.firstOrNull()?.firstOrNull()?.name
-                ?: categories.firstOrNull { it.id == p.categories.firstOrNull() }?.name
-                ?: "Uncategorized"
-            
+                ?: p.categories.firstOrNull()?.toString() ?: "Uncategorized"
+
             // Extract author name from embedded or fallback
             val authorName = p.embedded?.author?.firstOrNull()?.name
-                ?: users.firstOrNull { it.id == p.author }?.name
-                ?: "Admin"
-            
+                ?: p.author.toString()
+
             BlogPost(
                 id = p.id,
                 title = HtmlCompat.fromHtml(p.title.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
                 excerpt = HtmlCompat.fromHtml(p.excerpt.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
-                content = p.content.rendered, // Full HTML content
+                content = HtmlCompat.fromHtml(p.content.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
                 date = p.date,
                 category = categoryName,
                 author = authorName,
@@ -49,44 +43,123 @@ class WpRepository(private val context: Context) {
     }
 
     suspend fun getBanners(): List<Banner> {
-        val mediaItems = api.getMedia(perPage = 10, search = "banner")
-        return mediaItems.filter { 
-            it.sourceUrl.isNotEmpty() && it.title.rendered.contains("banner", ignoreCase = true)
-        }.mapIndexed { index, item ->
-            val title = HtmlCompat.fromHtml(item.title.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+        // First try to get banner images from media library
+        val apiMediaItems = api.getMedia(perPage = 20, search = null)
+        val bannerItems = apiMediaItems.filter { item ->
+            val title = item.title.rendered.lowercase()
+            val altText = item.altText?.lowercase() ?: ""
+            val caption = item.caption?.rendered?.lowercase() ?: ""
+
+            // Look for banner-related keywords
+            title.contains("banner") ||
+            altText.contains("banner") ||
+            caption.contains("banner") ||
+            title.contains("hero") ||
+            title.contains("slider") ||
+            title.contains("featured")
+        }
+
+        if (bannerItems.isNotEmpty()) {
+            return bannerItems.take(3).mapIndexed { index, item ->
+                val rawTitle = HtmlCompat.fromHtml(item.title.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+                val altText = item.altText ?: ""
+                val caption = item.caption?.rendered ?: ""
+
+                // Extract meaningful title from various sources
+                val title = when {
+                    rawTitle.isNotBlank() && !rawTitle.contains("banner", ignoreCase = true) -> rawTitle
+                    altText.isNotBlank() -> altText
+                    caption.isNotBlank() -> HtmlCompat.fromHtml(caption, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+                    else -> "" // No hardcoded text
+                }
+
+                val subtitle = extractBannerSubtitle(rawTitle, altText, caption)
+                val description = extractBannerDescription(rawTitle, altText, caption)
+
+                Banner(
+                    id = item.id,
+                    title = title,
+                    subtitle = subtitle,
+                    description = description,
+                    imageUrl = getBestImageUrlFromApi(item),
+                    ctaText = "Shop Now"
+                )
+            }
+        }
+
+        // Fallback: Use hardcoded banner URLs if no media found
+        return getFallbackBanners()
+    }
+
+    private fun extractBannerSubtitle(rawTitle: String, altText: String, caption: String): String {
+        // Try to extract discount/offers from title, alt text, or caption
+        val combinedText = "$rawTitle $altText $caption".lowercase()
+        return when {
+            combinedText.contains("50") && combinedText.contains("off") -> "UP TO 50% OFF"
+            combinedText.contains("40") && combinedText.contains("off") -> "UP TO 40% OFF"
+            combinedText.contains("30") && combinedText.contains("off") -> "UP TO 30% OFF"
+            combinedText.contains("free") && combinedText.contains("delivery") -> "FREE DELIVERY"
+            combinedText.contains("sale") -> "LIMITED TIME SALE"
+            combinedText.contains("offer") -> "SPECIAL OFFER"
+            else -> "" // No hardcoded text
+        }
+    }
+
+    private fun extractBannerDescription(rawTitle: String, altText: String, caption: String): String {
+        // Try to extract description from caption or alt text
+        val combinedText = "$rawTitle $altText $caption"
+        return when {
+            combinedText.contains("agricultural", ignoreCase = true) -> "Discover our wide range of high-quality agricultural machinery and equipment"
+            combinedText.contains("farm", ignoreCase = true) -> "Quality farm machinery for modern agriculture"
+            combinedText.contains("delivery", ignoreCase = true) -> "Get free delivery on all orders above ₹2000 across India"
+            combinedText.contains("trusted", ignoreCase = true) -> "Trusted by farmers across India for quality and reliability"
+            else -> "" // No hardcoded text
+        }
+    }
+
+    private fun getBestImageUrlFromApi(item: WpApiMediaItem): String {
+        // Try to get the largest available image size
+        val sizes = item.mediaDetails?.sizes
+        if (sizes != null) {
+            // Priority: large, full, medium_large, medium
+        val preferredSizes = listOf<String>("large", "full", "medium_large", "medium")
+            for (sizeName in preferredSizes) {
+                sizes[sizeName]?.let { size ->
+                    return size.sourceUrl
+                }
+            }
+        }
+        // Fallback to source_url
+        return item.sourceUrl
+    }
+
+    private fun getFallbackBanners(): List<Banner> {
+        return listOf(
             Banner(
-                id = item.id,
-                title = extractTitle(title, index),
-                subtitle = extractSubtitle(index),
-                description = extractDescription(index),
-                imageUrl = item.sourceUrl,
+                id = 1,
+                title = "",
+                subtitle = "",
+                description = "",
+                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/elementor/thumbs/banner-r2sg0udwg8jryfmhpu6niloeicuect6rsguv9ef8cw.png",
+                ctaText = "Shop Now"
+            ),
+            Banner(
+                id = 2,
+                title = "",
+                subtitle = "",
+                description = "",
+                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/elementor/thumbs/banner-1-r2sg13sackwn6j8u6y8x7jb0g7k2hs835rdq261amo.png",
+                ctaText = "Shop Now"
+            ),
+            Banner(
+                id = 3,
+                title = "",
+                subtitle = "",
+                description = "",
+                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/elementor/thumbs/banner-2-r2sg1d6o8x9iemv6o2b6wgxme29qmr9ej1wkuxncwg.png",
                 ctaText = "Shop Now"
             )
-        }
-    }
-
-    private fun extractTitle(rawTitle: String, index: Int): String {
-        return when {
-            rawTitle.contains("1") || index == 0 -> "Festival Sale"
-            rawTitle.contains("2") || index == 1 -> "Premium Tools"
-            else -> "Quality Assured"
-        }
-    }
-
-    private fun extractSubtitle(index: Int): String {
-        return when (index) {
-            0 -> "UP TO 50% OFF"
-            1 -> "FREE DELIVERY"
-            else -> "BEST PRICES"
-        }
-    }
-
-    private fun extractDescription(index: Int): String {
-        return when (index) {
-            0 -> "On all agricultural equipment"
-            1 -> "On orders above ₹2000"
-            else -> "Guaranteed authentic products"
-        }
+        )
     }
 
     suspend fun getOfferBanners(): List<Banner> {
@@ -111,7 +184,7 @@ class WpRepository(private val context: Context) {
                 title = extractOfferTitle(rawTitle),
                 subtitle = extractOfferSubtitle(rawTitle),
                 description = extractOfferDescription(rawTitle),
-                imageUrl = item.sourceUrl,
+                imageUrl = getBestImageUrlFromApi(item),
                 ctaText = "Shop Now"
             )
         }
@@ -210,7 +283,8 @@ class WpRepository(private val context: Context) {
                 altText = m.altText,
                 caption = m.caption?.rendered?.let { 
                     HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString() 
-                }
+                },
+                mediaDetails = m.mediaDetails
             )
         }
     }
@@ -255,5 +329,6 @@ data class WpMediaItem(
     val title: String,
     val sourceUrl: String,
     val altText: String?,
-    val caption: String?
+    val caption: String?,
+    val mediaDetails: WpMediaDetails?
 )

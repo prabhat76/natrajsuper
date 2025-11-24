@@ -112,4 +112,9 @@ class WooPrefs(private val context: Context) {
     var accentColor: String?
         get() = sp.getString("accent_color", "#2196F3")
         set(value) = sp.edit().putString("accent_color", value).apply()
+
+    // Theme mode preference
+    var themeMode: String?
+        get() = sp.getString("theme_mode", "system") // Default to system
+        set(value) = sp.edit().putString("theme_mode", value).apply()
 }

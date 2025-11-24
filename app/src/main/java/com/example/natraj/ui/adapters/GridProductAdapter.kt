@@ -87,7 +87,7 @@ class GridProductAdapter(
             // Wishlist state
             updateWishlistIcon(product.id)
 
-            // Load product image from Woo or local; no external mock fallbacks
+            // Load product image with better quality and caching
             val imageToLoad = when {
                 !product.images.isNullOrEmpty() -> product.images.first()
                 !product.imageUrl.isNullOrEmpty() -> product.imageUrl
@@ -102,6 +102,7 @@ class GridProductAdapter(
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
                 .fallback(R.drawable.ic_launcher_background)
+                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
                 .centerCrop()
                 .into(productImage)
 

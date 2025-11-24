@@ -3,6 +3,7 @@ package com.example.natraj
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
@@ -48,9 +49,6 @@ class BlogActivity : AppCompatActivity() {
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             title = "Blog & Articles"
-        }
-        toolbar.setNavigationOnClickListener {
-            finish()
         }
         ThemeUtil.applyToolbarColor(toolbar, this)
     }
@@ -112,6 +110,16 @@ class BlogActivity : AppCompatActivity() {
             emptyState.visibility = View.GONE
             recyclerView.visibility = View.VISIBLE
             blogAdapter.submitList(filteredPosts)
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 }

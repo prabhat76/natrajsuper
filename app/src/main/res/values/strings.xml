@@ -27,6 +27,8 @@
     <string name="emoji_settings">⚙️</string>
     <string name="emoji_help">❓</string>
     <string name="emoji_logout">🚪</string>
+    <string name="emoji_theme">🌙</string>
+    <string name="emoji_sync">🔄</string>
     
     <!-- Profile Dialogs -->
     <string name="dialog_login_required">Login Required</string>

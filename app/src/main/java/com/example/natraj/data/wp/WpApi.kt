@@ -33,7 +33,18 @@ data class WpMediaItem(
     val title: WpRendered,
     @SerializedName("source_url") val sourceUrl: String,
     @SerializedName("alt_text") val altText: String?,
-    @SerializedName("caption") val caption: WpRendered?
+    @SerializedName("caption") val caption: WpRendered?,
+    @SerializedName("media_details") val mediaDetails: WpMediaDetails?
+)
+
+data class WpMediaDetails(
+    val sizes: Map<String, WpMediaSize>?
+)
+
+data class WpMediaSize(
+    @SerializedName("source_url") val sourceUrl: String,
+    val width: Int,
+    val height: Int
 )
 
 data class WpPage(

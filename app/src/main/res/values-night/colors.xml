@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme color overrides -->
+    <color name="primary">#0D47A1</color>
+    <color name="primary_dark">#0B3A85</color>
+    <color name="text_on_primary">#FFFFFFFF</color>
+
+    <color name="accent_orange">#FFBB86FC</color>
+    <color name="accent_yellow">#FFD54F</color>
+
+    <color name="background_light">#121212</color>
+    <color name="background_card">#1E1E1E</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B3B3B3</color>
+    <color name="text_hint">#8A8A8A</color>
+
+    <color name="error">#CF6679</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+
+    <!-- Navigation / status bar overrides -->
+    <color name="nav_bar_color">#121212</color>
+    <color name="status_bar_color">#0B3A85</color>
+
+    <!-- Additional color overrides for dark theme -->
+    <color name="primary_orange">#0D47A1</color>
+    <color name="primary_red">#0B3A85</color>
+    <color name="primary_gold">#42A5F5</color>
+    <color name="light_orange">#1E1E1E</color>
+    <color name="dark_red">#0B3A85</color>
+
+    <color name="success_green">#4CAF50</color>
+    <color name="error_red">#CF6679</color>
+    <color name="stock_green">#4CAF50</color>
+    <color name="discount_badge_red">#CF6679</color>
+
+    <color name="buy_now_orange">#FFBB86FC</color>
+    <color name="warning_orange">#FFD54F</color>
+    <color name="accent">#FFBB86FC</color>
+
+    <color name="agricultural_orange">#0D47A1</color>
+    <color name="add_to_cart_green">#4CAF50</color>
+    <color name="gold_light">#1E1E1E</color>
+    <color name="gold">#FFD54F</color>
+    <color name="discount_bg">#CF6679</color>
+    <color name="gradient_start">#0D47A1</color>
+    <color name="gradient_end">#0B3A85</color>
+    <color name="agricultural_green">#4CAF50</color>
+    <color name="background_color">#121212</color>
+    <color name="primary_color">#0D47A1</color>
+    <color name="accent_color">#FFBB86FC</color>
+    <color name="success">#4CAF50</color>
+    <color name="rating_green">#4CAF50</color>
+    <color name="success_color">#4CAF50</color>
+    <color name="discount_text">#CF6679</color>
+    <color name="light_gray">#424242</color>
+    <color name="overlay_dark">#B3000000</color>
+</resources>

@@ -3,6 +3,8 @@ package com.example.natraj
 import android.content.Intent
 import android.graphics.Paint
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Html
 import android.view.View
 import android.widget.Button
@@ -16,6 +18,23 @@ import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 
 class ProductDetailActivity : AppCompatActivity() {
+
+    private lateinit var carousel: ViewPager2
+    private lateinit var dotIndicator: LinearLayout
+    private val slideshowHandler = Handler(Looper.getMainLooper())
+    private var isSlideshowActive = true
+    private val slideshowRunnable = object : Runnable {
+        override fun run() {
+            if (isSlideshowActive && carousel.adapter != null) {
+                val itemCount = carousel.adapter?.itemCount ?: 0
+                if (itemCount > 1) {
+                    val nextItem = (carousel.currentItem + 1) % itemCount
+                    carousel.setCurrentItem(nextItem, true)
+                    slideshowHandler.postDelayed(this, 3000) // Auto-advance every 3 seconds
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,10 +55,13 @@ class ProductDetailActivity : AppCompatActivity() {
         val description = findViewById<TextView>(R.id.detail_description)
         val add = findViewById<Button>(R.id.detail_add_to_cart)
         val buyNow = findViewById<Button>(R.id.detail_buy_now)
-        val view360 = findViewById<Button>(R.id.detail_view_360)
         val wishlistBtn = findViewById<ImageView>(R.id.detail_wishlist_btn)
         val specsContainer = findViewById<LinearLayout>(R.id.detail_specs_container)
         val backButton = findViewById<ImageView>(R.id.back_button)
+
+        // Store references for slideshow
+        this.carousel = carousel
+        this.dotIndicator = dotIndicator
 
         backButton.setOnClickListener {
             // Navigate back to MainActivity with clear task stack
@@ -63,29 +85,11 @@ class ProductDetailActivity : AppCompatActivity() {
         val displayPrice = if (product.transferPrice > 0) product.transferPrice else product.price
         price.text = "₹${displayPrice.toInt()}"
         
-        // Render HTML description properly with line breaks and formatting
+        // Render HTML description as bullet points instead of paragraphs
         if (!product.description.isNullOrEmpty()) {
-            // Convert HTML to formatted text preserving line breaks
-            val htmlText = product.description
-                .replace("<p>", "")
-                .replace("</p>", "\n\n")
-                .replace("<br>", "\n")
-                .replace("<br/>", "\n")
-                .replace("<br />", "\n")
-                .replace("<ul>", "")
-                .replace("</ul>", "\n")
-                .replace("<li>", "• ")
-                .replace("</li>", "\n")
-                .replace("<strong>", "")
-                .replace("</strong>", "")
-                .replace("<b>", "")
-                .replace("</b>", "")
-                .trim()
-            
-            description.text = HtmlCompat.fromHtml(
-                htmlText,
-                HtmlCompat.FROM_HTML_MODE_LEGACY
-            )
+            // Convert HTML description to bullet point format
+            val processedDescription = processDescriptionToBullets(product.description)
+            description.text = processedDescription
         } else {
             description.text = "No description available"
         }
@@ -101,7 +105,7 @@ class ProductDetailActivity : AppCompatActivity() {
             original.paintFlags = original.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
         }
 
-        // Setup image carousel
+        // Setup image carousel with slideshow
         val images = if (!product.images.isNullOrEmpty()) product.images else listOf(product.imageUrl)
         carousel.adapter = ProductImageCarouselAdapter(images)
         
@@ -110,6 +114,22 @@ class ProductDetailActivity : AppCompatActivity() {
         carousel.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 setupDotIndicators(dotIndicator, images.size, position)
+            }
+        })
+
+        // Start slideshow if multiple images
+        if (images.size > 1) {
+            startSlideshow()
+        }
+
+        // Pause slideshow on user interaction
+        carousel.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                setupDotIndicators(dotIndicator, images.size, position)
+                // Reset slideshow timer when user manually changes page
+                if (images.size > 1) {
+                    restartSlideshow()
+                }
             }
         })
 
@@ -125,12 +145,6 @@ class ProductDetailActivity : AppCompatActivity() {
             val intent = Intent(this, QuickCheckoutActivity::class.java)
             intent.putExtra("product", product)
             intent.putExtra("quantity", qty)
-            startActivity(intent)
-        }
-
-        view360.setOnClickListener {
-            val intent = android.content.Intent(this, Product360Activity::class.java)
-            intent.putStringArrayListExtra("images", ArrayList(product.images ?: emptyList()))
             startActivity(intent)
         }
 
@@ -208,6 +222,41 @@ class ProductDetailActivity : AppCompatActivity() {
         }
     }
     
+    private fun startSlideshow() {
+        isSlideshowActive = true
+        slideshowHandler.postDelayed(slideshowRunnable, 3000)
+    }
+    
+    private fun stopSlideshow() {
+        isSlideshowActive = false
+        slideshowHandler.removeCallbacks(slideshowRunnable)
+    }
+    
+    private fun restartSlideshow() {
+        stopSlideshow()
+        startSlideshow()
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Resume slideshow when activity becomes visible
+        if (carousel.adapter != null && carousel.adapter?.itemCount ?: 0 > 1) {
+            startSlideshow()
+        }
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Pause slideshow when activity is not visible
+        stopSlideshow()
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // Clean up slideshow handler
+        stopSlideshow()
+    }
+    
     private fun addSpecRow(container: LinearLayout, label: String, value: String) {
         val row = TextView(this)
         row.text = "$label: $value"
@@ -243,6 +292,21 @@ class ProductDetailActivity : AppCompatActivity() {
         textView.setTextColor(resources.getColor(R.color.text_secondary, theme))
         textView.textSize = 13f
         container.addView(textView)
+    }
+    
+    private fun processDescriptionToBullets(htmlDescription: String): String {
+        // Remove HTML tags and split into sentences/paragraphs
+        val cleanText = HtmlCompat.fromHtml(htmlDescription, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+            .replace(Regex("\\s+"), " ") // Normalize whitespace
+            .trim()
+
+        // Split by sentences and paragraphs
+        val sentences = cleanText.split(Regex("[.!?]+\\s*"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        // Convert each sentence to bullet point
+        return sentences.joinToString("\n") { "• $it" }
     }
     
     private fun updateWishlistButton(wishlistBtn: ImageView, productId: Int) {

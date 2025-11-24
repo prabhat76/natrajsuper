@@ -14,8 +14,9 @@ import androidx.lifecycle.lifecycleScope
 import com.example.natraj.ui.activities.AccountDetailsActivity
 import com.example.natraj.ui.activities.WishlistActivity
 import com.example.natraj.util.CustomToast
-import com.example.natraj.util.sync.AccountSyncManager
+import com.example.natraj.util.ThemeUtil
 import kotlinx.coroutines.launch
+import android.util.Log
 
 class ProfileFragment : Fragment() {
     
@@ -35,15 +36,35 @@ class ProfileFragment : Fragment() {
         updateUserInfo()
         
         val ordersSection = view.findViewById<LinearLayout>(R.id.profile_orders_section)
+        val downloadsSection = view.findViewById<LinearLayout>(R.id.profile_downloads_section)
         val wishlistSection = view.findViewById<LinearLayout>(R.id.profile_wishlist_section)
         val addressSection = view.findViewById<LinearLayout>(R.id.profile_address_section)
-        val helpSection = view.findViewById<LinearLayout>(R.id.profile_help_section)
+        val accountSection = view.findViewById<LinearLayout>(R.id.profile_account_section)
+        val paymentSection = view.findViewById<LinearLayout>(R.id.profile_payment_section)
+        val themeSection = view.findViewById<LinearLayout>(R.id.profile_theme_section)
         val logoutSection = view.findViewById<LinearLayout>(R.id.profile_logout_section)
+
+        accountSection.setOnClickListener {
+            if (AuthManager.isLoggedIn()) {
+                val intent = Intent(requireContext(), AccountDetailsActivity::class.java)
+                startActivity(intent)
+            } else {
+                showLoginPrompt()
+            }
+        }
 
         ordersSection.setOnClickListener {
             if (AuthManager.isLoggedIn()) {
                 val intent = Intent(requireContext(), OrdersActivity::class.java)
                 startActivity(intent)
+            } else {
+                showLoginPrompt()
+            }
+        }
+
+        downloadsSection.setOnClickListener {
+            if (AuthManager.isLoggedIn()) {
+                CustomToast.showInfo(requireContext(), "Downloads feature coming soon")
             } else {
                 showLoginPrompt()
             }
@@ -67,10 +88,16 @@ class ProfileFragment : Fragment() {
             }
         }
 
-        helpSection.setOnClickListener {
-            // Launch debug activity for development
-            val intent = Intent(requireContext(), APIDebugActivity::class.java)
-            startActivity(intent)
+        paymentSection.setOnClickListener {
+            if (AuthManager.isLoggedIn()) {
+                CustomToast.showInfo(requireContext(), "Payment methods feature coming soon")
+            } else {
+                showLoginPrompt()
+            }
+        }
+
+        themeSection.setOnClickListener {
+            showThemeDialog()
         }
 
         logoutSection.setOnClickListener {
@@ -87,6 +114,7 @@ class ProfileFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         updateUserInfo()
+        updateThemeStatus()
     }
     
     private fun updateUserInfo() {
@@ -124,10 +152,50 @@ class ProfileFragment : Fragment() {
             .show()
     }
     
+    private fun updateThemeStatus() {
+        val themeStatus = view?.findViewById<TextView>(R.id.profile_theme_status)
+        val currentMode = ThemeUtil.getCurrentThemeMode(requireContext())
+        val displayText = when (currentMode) {
+            "light" -> "Light"
+            "dark" -> "Dark"
+            "system" -> if (ThemeUtil.isDarkTheme(requireContext())) "System (Dark)" else "System (Light)"
+            else -> "System"
+        }
+        themeStatus?.text = displayText
+    }
+    
+    private fun showThemeDialog() {
+        val currentMode = ThemeUtil.getCurrentThemeMode(requireContext())
+        val themes = arrayOf("Light", "Dark", "System Default")
+        val checkedItem = when (currentMode) {
+            "light" -> 0
+            "dark" -> 1
+            "system" -> 2
+            else -> 2 // Default to system
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Choose Theme")
+            .setSingleChoiceItems(themes, checkedItem) { dialog, which ->
+                val mode = when (which) {
+                    0 -> "light"
+                    1 -> "dark"
+                    else -> "system"
+                }
+                ThemeUtil.setThemeMode(requireContext(), mode)
+                updateThemeStatus()
+                dialog.dismiss()
+                // Theme will be applied after activity recreation
+                activity?.recreate()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
     private fun performLogout() {
         AuthManager.logout()
         if (isAdded && context != null) {
-            Toast.makeText(requireContext(), R.string.toast_logged_out, Toast.LENGTH_SHORT).show()
+            CustomToast.showSuccess(requireContext(), "Logged out successfully")
         }
         
         // Navigate to login screen
@@ -137,4 +205,3 @@ class ProfileFragment : Fragment() {
         activity?.finish()
     }
 }
-

@@ -5,30 +5,30 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
+    android:clickable="true"
+    android:focusable="true"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp"
-    android:background="@color/white"
+    android:background="@color/background_card"
     android:foreground="?attr/selectableItemBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@color/white">
+        android:background="@color/background_card">
 
         <!-- Product Image Container -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="180dp"
-            android:layout_marginBottom="8dp"
-            android:background="#F8F8F8">
+            android:layout_marginBottom="8dp">
 
             <ImageView
                 android:id="@+id/product_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:padding="8dp"
                 tools:src="@drawable/ic_launcher_background" />
 
             <!-- NEW Badge -->
@@ -75,7 +75,7 @@
                 android:padding="6dp"
                 android:background="@drawable/circle_white_bg"
                 android:src="@drawable/ic_favorite"
-                android:tint="#757575" />
+                android:tint="@color/text_secondary" />
         </FrameLayout>
 
         <!-- Product Info Container -->
@@ -93,7 +93,7 @@
                 android:layout_height="wrap_content"
                 android:text="AS-580CI Agriculture Sprayer"
                 android:textSize="14sp"
-                android:textColor="#212121"
+                android:textColor="@color/text_primary"
                 android:maxLines="2"
                 android:minLines="2"
                 android:ellipsize="end"
@@ -160,7 +160,7 @@
                     android:text="₹9,099.00"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="#212121"
+                    android:textColor="@color/text_primary"
                     android:layout_marginBottom="4dp"
                     tools:text="₹9,099.00" />
 
@@ -179,7 +179,7 @@
                         android:layout_height="wrap_content"
                         android:text="₹12,738.00"
                         android:textSize="13sp"
-                        android:textColor="#757575"
+                        android:textColor="@color/text_secondary"
                         android:layout_marginEnd="8dp"
                         tools:text="Original price: ₹12,738.00" />
 
@@ -203,7 +203,7 @@
                 android:text="ADD TO CART"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:background="@drawable/bg_button_add_to_cart"
                 android:letterSpacing="0.05"
                 android:elevation="2dp" />

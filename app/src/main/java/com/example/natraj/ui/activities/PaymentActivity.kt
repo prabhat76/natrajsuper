@@ -46,6 +46,7 @@ class PaymentActivity : AppCompatActivity() {
         Log.d(TAG, "Address: ${address.name}, ${address.city}")
         
         val backButton = findViewById<ImageView>(R.id.payment_back_button)
+        val filterButton = findViewById<ImageView>(R.id.payment_filter_button)
         val addressText = findViewById<TextView>(R.id.payment_address_text)
         val itemsCount = findViewById<TextView>(R.id.payment_items_count)
         val subtotal = findViewById<TextView>(R.id.payment_subtotal)
@@ -58,6 +59,10 @@ class PaymentActivity : AppCompatActivity() {
 
         backButton.setOnClickListener {
             finish()
+        }
+
+        filterButton.setOnClickListener {
+            showPaymentFilterDialog()
         }
 
         // Display address
@@ -307,6 +312,56 @@ class PaymentActivity : AppCompatActivity() {
                 placeOfflineOrder(cartItems, gatewayId, paymentTitle)
             }
         }
+    }
+    
+    private fun showPaymentFilterDialog() {
+        val options = arrayOf("All Payment Methods", "Cash on Delivery Only", "Online Payments Only")
+        
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Filter Payment Options")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> setupPaymentOptions(findViewById(R.id.payment_method_group)) // All options
+                    1 -> setupFilteredPaymentOptions(findViewById(R.id.payment_method_group), "cod") // COD only
+                    2 -> setupFilteredPaymentOptions(findViewById(R.id.payment_method_group), "online") // Online only
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun setupFilteredPaymentOptions(paymentGroup: RadioGroup, filter: String) {
+        Log.d(TAG, "Setting up filtered payment options: $filter")
+        
+        // Clear any existing options
+        paymentGroup.removeAllViews()
+        
+        val allOptions = listOf(
+            "cod" to "Cash on Delivery",
+            "razorpay" to "Online Payment (UPI/Card/Netbanking)",
+            "bacs" to "Direct Bank Transfer"
+        )
+        
+        val filteredOptions = when (filter) {
+            "cod" -> allOptions.filter { it.first == "cod" }
+            "online" -> allOptions.filter { it.first != "cod" }
+            else -> allOptions
+        }
+        
+        filteredOptions.forEachIndexed { index, (id, title) ->
+            val radioButton = RadioButton(this).apply {
+                this.id = View.generateViewId()
+                text = title
+                tag = id
+                textSize = 15f
+                setPadding(24, 24, 24, 24)
+                isChecked = (index == 0) // First option checked by default
+            }
+            paymentGroup.addView(radioButton)
+            Log.d(TAG, "Added filtered payment option: $title")
+        }
+        
+        Log.d(TAG, "Filtered payment options setup complete, ${filteredOptions.size} options added")
     }
     
     private fun placeOfflineOrder(cartItems: List<CartItem>, gatewayId: String, paymentTitle: String) {
