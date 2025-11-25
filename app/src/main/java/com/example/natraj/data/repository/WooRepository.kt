@@ -8,10 +8,10 @@ import com.example.natraj.data.woo.*
 class WooRepository(private val context: Context) {
     private val api by lazy { WooClient.api(context) }
     
-    // Memory cache for categories and products (5 minutes TTL)
+    // Memory cache for categories and products (dynamic timeout)
     private var categoriesCache: Pair<Long, List<Category>>? = null
     private val productCache = mutableMapOf<String, Pair<Long, List<Product>>>()
-    private val cacheTimeout = 5 * 60 * 1000L // 5 minutes
+    private val cacheTimeout = AppConfig.getCacheTimeoutMinutes(context) * 60 * 1000L // Dynamic cache timeout
 
     suspend fun getCategories(): List<Category> {
         // Check cache first
@@ -22,7 +22,7 @@ class WooRepository(private val context: Context) {
         }
         
         // Fetch from API
-        val list = api.getCategories(perPage = 100, hideEmpty = false)
+        val list = api.getCategories(perPage = AppConfig.getCategoriesPerPage(context), hideEmpty = false)
         val categories = list.map { wc ->
             Category(
                 id = wc.id,
@@ -81,8 +81,8 @@ class WooRepository(private val context: Context) {
         billing: WooBilling,
         shipping: WooShipping,
         lineItems: List<WooOrderLineItem>,
-        paymentMethod: String = "cod",
-        paymentTitle: String = "Cash on Delivery",
+        paymentMethod: String = AppConfig.getDefaultPaymentMethod(context),
+        paymentTitle: String = AppConfig.getDefaultPaymentTitle(context),
         setPaid: Boolean = false,
         customerId: Int = 0,
         customerNote: String? = null,
@@ -107,7 +107,7 @@ class WooRepository(private val context: Context) {
     }
     
     suspend fun getOrders(
-        perPage: Int = 20,
+        perPage: Int = AppConfig.getOrdersPerPage(context),
         page: Int = 1,
         customerId: Int? = null,
         status: String? = null
@@ -120,7 +120,7 @@ class WooRepository(private val context: Context) {
         )
     }
     
-    suspend fun getRecentOrders(limit: Int = 50): List<WooOrderResponse> {
+    suspend fun getRecentOrders(limit: Int = AppConfig.getRecentOrdersLimit(context)): List<WooOrderResponse> {
         return api.getOrders(perPage = limit, order = "desc")
     }
     

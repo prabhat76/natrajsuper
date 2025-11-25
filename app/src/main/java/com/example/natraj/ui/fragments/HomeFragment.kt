@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.example.natraj.data.WooRepository
+import com.example.natraj.data.AppConfig
 import com.example.natraj.data.woo.FilterParams
 import com.example.natraj.data.woo.WooClient
 import com.example.natraj.data.woo.WooPrefs
@@ -253,7 +254,7 @@ class HomeFragment : Fragment() {
                 try {
                     val repo = com.example.natraj.data.WooRepository(requireContext())
                     val products = withContext(Dispatchers.IO) {
-                        repo.getProducts(com.example.natraj.data.woo.FilterParams(perPage = 6))
+                        repo.getProducts(com.example.natraj.data.woo.FilterParams(perPage = AppConfig.getBlogPostsLimit(requireContext())))
                     }
                     if (products.isEmpty()) return@launch
                     setupRecommendedRecyclerView(products)
@@ -367,7 +368,7 @@ class HomeFragment : Fragment() {
 
     private fun openWhatsApp() {
         try {
-            val phoneNumber = "+911234567890" // Replace with actual WhatsApp number
+            val phoneNumber = AppConfig.getWhatsAppNumber(requireContext()) // Dynamic WhatsApp number
             val message = "Hi! I'm interested in your Diwali offers. Please share more details."
             val encodedMessage = Uri.encode(message)
             val whatsappUri = "https://wa.me/$phoneNumber?text=$encodedMessage"
@@ -406,7 +407,7 @@ class HomeFragment : Fragment() {
             try {
                 val repo = com.example.natraj.data.WooRepository(requireContext())
                 val products = withContext(Dispatchers.IO) {
-                    repo.getProducts(com.example.natraj.data.woo.FilterParams(categoryId = categoryId, perPage = 30))
+                    repo.getProducts(com.example.natraj.data.woo.FilterParams(categoryId = categoryId, perPage = AppConfig.getProductsPerPage(requireContext())))
                 }
                 updateProductsRecycler(products)
                 showToast("Showing products in $label")

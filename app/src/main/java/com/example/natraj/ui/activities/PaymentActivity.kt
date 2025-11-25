@@ -17,6 +17,7 @@ import com.example.natraj.data.WooRepository
 import com.example.natraj.data.woo.WooBilling
 import com.example.natraj.data.woo.WooMetaData
 import com.example.natraj.data.woo.WooOrderLineItem
+import com.example.natraj.data.woo.WooPaymentGateway
 import com.example.natraj.data.woo.WooPrefs
 import com.example.natraj.data.woo.WooShipping
 import com.example.natraj.util.CustomToast
@@ -101,27 +102,43 @@ class PaymentActivity : AppCompatActivity() {
         // Clear any existing options
         paymentGroup.removeAllViews()
         
-        // Add static reliable payment options
-        val options = listOf(
-            "cod" to "Cash on Delivery",
-            "razorpay" to "Online Payment (UPI/Card/Netbanking)",
-            "bacs" to "Direct Bank Transfer"
-        )
-        
-        options.forEachIndexed { index, (id, title) ->
-            val radioButton = RadioButton(this).apply {
-                this.id = View.generateViewId()
-                text = title
-                tag = id
-                textSize = 15f
-                setPadding(24, 24, 24, 24)
-                isChecked = (index == 0) // First option checked by default
-            }
-            paymentGroup.addView(radioButton)
-            Log.d(TAG, "Added payment option: $title")
+        val prefs = WooPrefs(this)
+        val hasWooConfig = !prefs.baseUrl.isNullOrBlank() && 
+                          !prefs.consumerKey.isNullOrBlank() && 
+                          !prefs.consumerSecret.isNullOrBlank()
+
+        if (!hasWooConfig) {
+            Log.w(TAG, "WooCommerce not configured, using static payment options")
+            setupStaticPaymentOptions(paymentGroup)
+            return
         }
-        
-        Log.d(TAG, "Payment options setup complete, ${options.size} options added")
+
+        // Fetch payment gateways from WooCommerce
+        lifecycleScope.launch {
+            try {
+                Log.d(TAG, "Fetching payment gateways from WooCommerce...")
+                val repo = WooRepository(this@PaymentActivity)
+                val gateways = withContext(Dispatchers.IO) {
+                    repo.getPaymentGateways()
+                }
+                
+                Log.d(TAG, "Fetched ${gateways.size} payment gateways")
+                
+                withContext(Dispatchers.Main) {
+                    if (gateways.isNotEmpty()) {
+                        setupDynamicPaymentOptions(paymentGroup, gateways)
+                    } else {
+                        Log.w(TAG, "No payment gateways found, using static options")
+                        setupStaticPaymentOptions(paymentGroup)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to fetch payment gateways: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    setupStaticPaymentOptions(paymentGroup)
+                }
+            }
+        }
     }
 
     private fun placeOrder(paymentGroup: RadioGroup, cartItems: List<CartItem>, totalAmount: Double) {
@@ -314,6 +331,72 @@ class PaymentActivity : AppCompatActivity() {
         }
     }
     
+    private fun setupDynamicPaymentOptions(paymentGroup: RadioGroup, gateways: List<WooPaymentGateway>) {
+        Log.d(TAG, "Setting up dynamic payment options")
+        
+        // Filter enabled gateways and prioritize common ones
+        val enabledGateways = gateways.filter { it.enabled }
+        Log.d(TAG, "Enabled gateways: ${enabledGateways.size}")
+        
+        // Sort by priority (cod first, then others)
+        val sortedGateways = enabledGateways.sortedWith(compareBy<WooPaymentGateway> { 
+            when (it.id) {
+                "cod" -> 0
+                "razorpay" -> 1
+                "bacs" -> 2
+                else -> 3
+            }
+        }.thenBy { it.title })
+        
+        sortedGateways.forEachIndexed { index, gateway ->
+            val displayTitle = when (gateway.id) {
+                "cod" -> "Cash on Delivery"
+                "razorpay" -> "Online Payment (UPI/Card/Netbanking)"
+                "bacs" -> "Direct Bank Transfer"
+                else -> gateway.title
+            }
+            
+            val radioButton = RadioButton(this).apply {
+                this.id = View.generateViewId()
+                text = displayTitle
+                tag = gateway.id
+                textSize = 15f
+                setPadding(24, 24, 24, 24)
+                isChecked = (index == 0) // First option checked by default
+            }
+            paymentGroup.addView(radioButton)
+            Log.d(TAG, "Added payment gateway: ${gateway.title} (${gateway.id})")
+        }
+        
+        Log.d(TAG, "Dynamic payment options setup complete, ${sortedGateways.size} options added")
+    }
+    
+    private fun setupStaticPaymentOptions(paymentGroup: RadioGroup) {
+        Log.d(TAG, "Setting up static payment options")
+        
+        // Add static reliable payment options as fallback
+        val options = listOf(
+            "cod" to "Cash on Delivery",
+            "razorpay" to "Online Payment (UPI/Card/Netbanking)",
+            "bacs" to "Direct Bank Transfer"
+        )
+        
+        options.forEachIndexed { index, (id, title) ->
+            val radioButton = RadioButton(this).apply {
+                this.id = View.generateViewId()
+                text = title
+                tag = id
+                textSize = 15f
+                setPadding(24, 24, 24, 24)
+                isChecked = (index == 0) // First option checked by default
+            }
+            paymentGroup.addView(radioButton)
+            Log.d(TAG, "Added static payment option: $title")
+        }
+        
+        Log.d(TAG, "Static payment options setup complete, ${options.size} options added")
+    }
+    
     private fun showPaymentFilterDialog() {
         val options = arrayOf("All Payment Methods", "Cash on Delivery Only", "Online Payments Only")
         
@@ -335,6 +418,53 @@ class PaymentActivity : AppCompatActivity() {
         
         // Clear any existing options
         paymentGroup.removeAllViews()
+        
+        val prefs = WooPrefs(this)
+        val hasWooConfig = !prefs.baseUrl.isNullOrBlank() && 
+                          !prefs.consumerKey.isNullOrBlank() && 
+                          !prefs.consumerSecret.isNullOrBlank()
+
+        if (!hasWooConfig) {
+            Log.w(TAG, "WooCommerce not configured, using static filtered options")
+            setupStaticFilteredPaymentOptions(paymentGroup, filter)
+            return
+        }
+
+        // Fetch and filter payment gateways from WooCommerce
+        lifecycleScope.launch {
+            try {
+                Log.d(TAG, "Fetching payment gateways for filtering...")
+                val repo = WooRepository(this@PaymentActivity)
+                val gateways = withContext(Dispatchers.IO) {
+                    repo.getPaymentGateways()
+                }
+                
+                val enabledGateways = gateways.filter { it.enabled }
+                val filteredGateways = when (filter) {
+                    "cod" -> enabledGateways.filter { it.id == "cod" }
+                    "online" -> enabledGateways.filter { it.id != "cod" }
+                    else -> enabledGateways
+                }
+                
+                withContext(Dispatchers.Main) {
+                    if (filteredGateways.isNotEmpty()) {
+                        setupDynamicPaymentOptions(paymentGroup, filteredGateways)
+                    } else {
+                        Log.w(TAG, "No filtered gateways found, using static options")
+                        setupStaticFilteredPaymentOptions(paymentGroup, filter)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to fetch filtered payment gateways: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    setupStaticFilteredPaymentOptions(paymentGroup, filter)
+                }
+            }
+        }
+    }
+    
+    private fun setupStaticFilteredPaymentOptions(paymentGroup: RadioGroup, filter: String) {
+        Log.d(TAG, "Setting up static filtered payment options: $filter")
         
         val allOptions = listOf(
             "cod" to "Cash on Delivery",
@@ -358,10 +488,10 @@ class PaymentActivity : AppCompatActivity() {
                 isChecked = (index == 0) // First option checked by default
             }
             paymentGroup.addView(radioButton)
-            Log.d(TAG, "Added filtered payment option: $title")
+            Log.d(TAG, "Added filtered static payment option: $title")
         }
         
-        Log.d(TAG, "Filtered payment options setup complete, ${filteredOptions.size} options added")
+        Log.d(TAG, "Static filtered payment options setup complete, ${filteredOptions.size} options added")
     }
     
     private fun placeOfflineOrder(cartItems: List<CartItem>, gatewayId: String, paymentTitle: String) {

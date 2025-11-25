@@ -74,11 +74,27 @@ class MainActivity : AppCompatActivity() {
         // Show HomeFragment by default, or open cart if requested
         if (savedInstanceState == null) {
             val openCart = intent.getBooleanExtra("open_cart", false)
-            if (openCart) switchFragment(CartFragment(), "Cart") else switchFragment(HomeFragment(), "Home")
+            val openHome = intent.getBooleanExtra("open_home", false)
+            
+            when {
+                openCart -> {
+                    switchFragment(CartFragment(), "Cart")
+                    bottomNav.selectedItemId = R.id.nav_cart
+                }
+                openHome -> {
+                    switchFragment(HomeFragment(), "Home")
+                    bottomNav.selectedItemId = R.id.nav_home
+                }
+                else -> switchFragment(HomeFragment(), "Home")
+            }
         }
 
         // Setup cart badge listener
         val badge = bottomNav.getOrCreateBadge(R.id.nav_cart)
+        badge.isVisible = false // Hide the badge completely
+        
+        // Comment out cart badge functionality
+        /*
         cartBadgeCallback = {
             try {
                 val count = CartManager.getItemCount()
@@ -94,6 +110,7 @@ class MainActivity : AppCompatActivity() {
         }
         CartManager.registerListener(cartBadgeCallback!!)
         cartBadgeCallback?.invoke()
+        */
     }
 
     override fun onDestroy() {

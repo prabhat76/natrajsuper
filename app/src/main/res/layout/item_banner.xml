@@ -77,20 +77,6 @@
                 android:gravity="center"
                 android:alpha="0.9" />
 
-            <!-- CTA Button -->
-            <Button
-                android:id="@+id/banner_cta_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/bg_button_accent"
-                android:text="Shop Now"
-                android:textColor="@color/primary"
-                android:textStyle="bold"
-                android:textSize="14sp"
-                android:paddingHorizontal="28dp"
-                android:paddingVertical="12dp"
-                android:elevation="4dp" />
         </LinearLayout>
     </FrameLayout>
 </androidx.cardview.widget.CardView>

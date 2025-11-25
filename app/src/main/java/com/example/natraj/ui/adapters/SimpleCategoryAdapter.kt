@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.android.material.card.MaterialCardView
 
 class SimpleCategoryAdapter(
@@ -24,9 +25,22 @@ class SimpleCategoryAdapter(
         fun bind(category: Category, position: Int) {
             categoryName.text = category.name
             
-            // Set category icon
-            val iconRes = getCategoryIcon(category.name)
-            categoryIcon.setImageResource(iconRes)
+            // Load category image from URL or use fallback icon
+            if (category.imageUrl.isNotEmpty()) {
+                Glide.with(itemView.context)
+                    .load(category.imageUrl)
+                    .placeholder(R.drawable.ic_category)
+                    .error(R.drawable.ic_category)
+                    .centerCrop()
+                    .into(categoryIcon)
+                
+                // Remove tint when using actual images
+                categoryIcon.setColorFilter(null)
+            } else {
+                // Use fallback icon without tint - show original colors
+                categoryIcon.setImageResource(getCategoryIcon(category.name))
+                categoryIcon.setColorFilter(null)
+            }
             
             // Show selection state
             val isSelected = position == selectedPosition

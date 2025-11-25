@@ -42,4 +42,19 @@
         <item name="android:textStyle">normal</item>
         <item name="android:textColor">@color/text_hint</item>
     </style>
+
+    <!-- Enhanced Bottom Navigation Styles -->
+    <style name="BottomNavigationEnhancedTextActive">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/primary</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
+    <style name="BottomNavigationEnhancedTextInactive">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
 </resources>

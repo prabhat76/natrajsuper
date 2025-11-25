@@ -213,7 +213,11 @@
                 android:textColor="@color/white"
                 android:textStyle="bold"
                 android:textAllCaps="false"
-                android:paddingHorizontal="32dp" />
+                android:paddingHorizontal="32dp"
+                android:drawableStart="@drawable/ic_shopping_bag"
+                android:drawablePadding="8dp"
+                android:elevation="4dp"
+                android:stateListAnimator="@animator/button_press_anim" />
         </LinearLayout>
 
         <!-- Price Details Card -->

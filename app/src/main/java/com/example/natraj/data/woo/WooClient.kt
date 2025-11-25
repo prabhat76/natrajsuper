@@ -1,6 +1,7 @@
 package com.example.natraj.data.woo
 
 import android.content.Context
+import com.example.natraj.data.AppConfig
 import okhttp3.Cache
 import okhttp3.CacheControl
 import okhttp3.HttpUrl
@@ -37,7 +38,7 @@ object WooClient {
             chain.proceed(request)
         }
 
-        // Cache interceptor - cache GET requests for 5 minutes
+        // Cache interceptor - cache GET requests for dynamic time
         val cacheInterceptor = Interceptor { chain ->
             val request = chain.request()
             val response = chain.proceed(request)
@@ -45,7 +46,7 @@ object WooClient {
             // Cache only GET requests
             if (request.method == "GET") {
                 val cacheControl = CacheControl.Builder()
-                    .maxAge(5, TimeUnit.MINUTES) // Cache for 5 minutes
+                    .maxAge(AppConfig.getHttpCacheMaxAgeMinutes(context), TimeUnit.MINUTES) // Dynamic cache time
                     .build()
                 response.newBuilder()
                     .header("Cache-Control", cacheControl.toString())
@@ -60,18 +61,18 @@ object WooClient {
             level = HttpLoggingInterceptor.Level.BODY // Changed to BODY to see error details
         }
 
-        // Create cache directory (10 MB)
+        // Create cache directory (dynamic size)
         val cacheDir = File(context.cacheDir, "http_cache")
-        val cache = Cache(cacheDir, 10L * 1024 * 1024) // 10 MB
+        val cache = Cache(cacheDir, AppConfig.getHttpCacheSizeMB(context) * 1024 * 1024) // Dynamic cache size
 
         val client = cachedClient ?: OkHttpClient.Builder()
             .cache(cache)
             .addInterceptor(authInterceptor)
             .addNetworkInterceptor(cacheInterceptor)
             .addInterceptor(logging)
-            .connectTimeout(15, TimeUnit.SECONDS) // Faster timeout
-            .readTimeout(20, TimeUnit.SECONDS)
-            .writeTimeout(20, TimeUnit.SECONDS)
+            .connectTimeout(AppConfig.getConnectTimeoutSeconds(context), TimeUnit.SECONDS) // Dynamic timeout
+            .readTimeout(AppConfig.getReadTimeoutSeconds(context), TimeUnit.SECONDS)
+            .writeTimeout(AppConfig.getWriteTimeoutSeconds(context), TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .build()
             .also { cachedClient = it }
@@ -106,11 +107,11 @@ class WooPrefs(private val context: Context) {
 
     // Dynamic theme colors
     var primaryColor: String?
-        get() = sp.getString("primary_color", "#1976D2")
+        get() = sp.getString("primary_color", AppConfig.getPrimaryColor(context))
         set(value) = sp.edit().putString("primary_color", value).apply()
 
     var accentColor: String?
-        get() = sp.getString("accent_color", "#2196F3")
+        get() = sp.getString("accent_color", AppConfig.getAccentColor(context))
         set(value) = sp.edit().putString("accent_color", value).apply()
 
     // Theme mode preference

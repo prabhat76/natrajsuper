@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.natraj.data.woo.WooPrefs
+import com.example.natraj.data.AppConfig
 import com.example.natraj.data.WooRepository
 import com.example.natraj.data.woo.FilterParams
 import kotlinx.coroutines.Dispatchers
@@ -67,7 +68,7 @@ class CatalogueActivity : AppCompatActivity() {
                 try {
                     val repo = WooRepository(this@CatalogueActivity)
                     val products = withContext(Dispatchers.IO) {
-                        repo.getProducts(FilterParams(perPage = 50)) // Load more products for catalogue
+                        repo.getProducts(FilterParams(perPage = AppConfig.getProductsPerPage(this@CatalogueActivity))) // Dynamic perPage for catalogue
                     }
 
                     if (products.isNotEmpty()) {

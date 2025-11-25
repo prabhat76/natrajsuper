@@ -283,14 +283,18 @@
         <Button
             android:id="@+id/confirmation_continue_shopping_btn"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="12dp"
-            android:background="@color/white"
-            android:text="CONTINUE SHOPPING"
-            android:textColor="@color/primary"
-            android:textSize="15sp"
+            android:layout_height="56dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_button_gradient"
+            android:text="🛒 CONTINUE SHOPPING"
+            android:textColor="@color/white"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:letterSpacing="0.05" />
+            android:letterSpacing="0.05"
+            android:drawableStart="@drawable/ic_shopping_bag"
+            android:drawablePadding="12dp"
+            android:elevation="6dp"
+            android:stateListAnimator="@animator/button_press_anim" />
 
     </LinearLayout>
 

@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.Toast
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class CartFragment : Fragment() {
 
@@ -51,10 +52,57 @@ class CartFragment : Fragment() {
         recycler.adapter = adapter
 
         view.findViewById<Button>(R.id.continue_shopping_btn).setOnClickListener {
-            // Switch to home fragment
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, HomeFragment())
-                .commit()
+            // Add button press animation with ripple effect
+            it.isEnabled = false // Prevent multiple clicks
+            
+            it.animate()
+                .scaleX(0.95f)
+                .scaleY(0.95f)
+                .setDuration(100)
+                .withEndAction {
+                    it.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(100)
+                        .withEndAction {
+                            it.isEnabled = true // Re-enable button
+                        }
+                        .start()
+                    
+                    // Navigate to home with smooth transition
+                    try {
+                        val mainActivity = activity as? MainActivity
+                        mainActivity?.switchFragment(HomeFragment(), "Home")
+                        
+                        // Update bottom navigation to show home is selected
+                        mainActivity?.findViewById<BottomNavigationView>(R.id.bottom_navigation)
+                            ?.selectedItemId = R.id.nav_home
+                        
+                        // Show a brief success message
+                        if (isAdded && context != null) {
+                            val messages = arrayOf(
+                                "Happy shopping! 🛒",
+                                "Let's find something amazing! ✨",
+                                "Explore our latest arrivals! 🚀",
+                                "Your shopping adventure begins! 🎯"
+                            )
+                            val randomMessage = messages.random()
+                            Toast.makeText(requireContext(), randomMessage, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        // Fallback navigation
+                        parentFragmentManager.beginTransaction()
+                            .setCustomAnimations(
+                                android.R.anim.fade_in,
+                                android.R.anim.fade_out,
+                                android.R.anim.fade_in,
+                                android.R.anim.fade_out
+                            )
+                            .replace(R.id.fragment_container, HomeFragment())
+                            .commit()
+                    }
+                }
+                .start()
         }
 
         checkoutBtn.setOnClickListener {

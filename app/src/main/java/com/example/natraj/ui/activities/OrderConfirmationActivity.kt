@@ -134,10 +134,41 @@ class OrderConfirmationActivity : AppCompatActivity() {
         }
 
         continueShoppingButton.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-            finish()
+            // Add button press animation
+            it.animate()
+                .scaleX(0.95f)
+                .scaleY(0.95f)
+                .setDuration(100)
+                .withEndAction {
+                    it.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(100)
+                        .start()
+                    
+                    // Show promotional message before navigating
+                    val messages = arrayOf(
+                        "Thanks for shopping with us! 🎉",
+                        "Happy shopping! Get 10% off on your next order! 🛒",
+                        "Explore more amazing products! ⭐",
+                        "Your next favorite item awaits! 💫"
+                    )
+                    val randomMessage = messages.random()
+                    CustomToast.showSuccess(this, randomMessage, Toast.LENGTH_SHORT)
+                    
+                    // Small delay for better UX
+                    it.postDelayed({
+                        val intent = Intent(this, MainActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                        intent.putExtra("open_home", true) // Flag to open home tab
+                        startActivity(intent)
+                        finish()
+                        
+                        // Add smooth transition
+                        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                    }, 300)
+                }
+                .start()
         }
     }
     

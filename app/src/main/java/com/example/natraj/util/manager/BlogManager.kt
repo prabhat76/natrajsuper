@@ -2,6 +2,7 @@ package com.example.natraj
 
 import android.content.Context
 import com.example.natraj.data.WpRepository
+import com.example.natraj.data.AppConfig
 import kotlinx.coroutines.runBlocking
 
 object BlogManager {
@@ -15,7 +16,7 @@ object BlogManager {
             // Try to fetch from WordPress API first
             runBlocking {
                 val wpRepository = WpRepository(context)
-                blogPosts = wpRepository.getRecentPosts(limit = 20)
+                blogPosts = wpRepository.getRecentPosts(limit = AppConfig.getBlogPostsLimit(context))
                 isInitialized = true
                 android.util.Log.d("BlogManager", "Loaded ${blogPosts.size} blog posts from WordPress")
             }
@@ -45,7 +46,7 @@ object BlogManager {
 
     fun getAllBlogPosts(): List<BlogPost> = blogPosts
 
-    fun getRecentPosts(limit: Int = 5): List<BlogPost> = blogPosts.take(limit)
+    fun getRecentPosts(limit: Int = AppConfig.DEFAULT_BLOG_POSTS_LIMIT): List<BlogPost> = blogPosts.take(limit)
 
     fun getPostsByCategory(category: String): List<BlogPost> =
         blogPosts.filter { it.category.equals(category, ignoreCase = true) }

@@ -18,6 +18,7 @@ import com.example.natraj.ProductDetailActivity
 import com.example.natraj.R
 import com.example.natraj.WishlistManager
 import com.example.natraj.data.WooRepository
+import com.example.natraj.data.AppConfig
 import com.example.natraj.data.woo.WooPrefs
 import com.example.natraj.util.CustomToast
 import kotlinx.coroutines.Dispatchers
@@ -95,7 +96,7 @@ class WishlistActivity : AppCompatActivity() {
             try {
                 val repo = WooRepository(this@WishlistActivity)
                 val allProducts = withContext(Dispatchers.IO) {
-                    repo.getProducts(params = com.example.natraj.data.woo.FilterParams(perPage = 100))
+                    repo.getProducts(params = com.example.natraj.data.woo.FilterParams(perPage = AppConfig.getProductsPerPage(this@WishlistActivity)))
                 }
                 
                 // Filter products that are in wishlist

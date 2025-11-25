@@ -2,6 +2,7 @@ package com.example.natraj
 
 import android.content.Context
 import com.example.natraj.data.WooRepository
+import com.example.natraj.data.AppConfig
 import com.example.natraj.data.woo.WooPrefs
 import kotlinx.coroutines.runBlocking
 
@@ -28,7 +29,7 @@ object ProductManager {
             // Try to fetch from WooCommerce API first
             runBlocking {
                 val repo = WooRepository(context)
-                val products = repo.getProducts(com.example.natraj.data.woo.FilterParams(perPage = 100))
+                val products = repo.getProducts(com.example.natraj.data.woo.FilterParams(perPage = AppConfig.getProductsPerPage(context)))
                 if (products.isNotEmpty()) {
                     allProducts = products
                     android.util.Log.d("ProductManager", "Loaded ${products.size} products from WooCommerce API")

@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.natraj.data.WooRepository
+import com.example.natraj.data.AppConfig
 import com.example.natraj.data.woo.WooPrefs
 import com.example.natraj.data.woo.WooOrderResponse
 import com.example.natraj.ui.activities.ErrorActivity
@@ -150,7 +151,7 @@ class OrdersActivity : AppCompatActivity() {
                     // Use server-side filtering for better performance - only fetch customer's orders
                     val customerIdParam = if (customerId > 0) customerId else null
                     val orders = repo.getOrders(
-                        perPage = 50,  // Reduced from 100 for faster loading
+                        perPage = AppConfig.getOrdersPerPage(this@OrdersActivity),  // Dynamic perPage
                         page = 1,
                         customerId = customerIdParam  // Server-side filtering
                     )

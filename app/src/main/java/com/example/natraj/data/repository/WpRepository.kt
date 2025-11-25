@@ -14,7 +14,7 @@ import com.example.natraj.data.wp.WpMediaItem as WpApiMediaItem
 class WpRepository(private val context: Context) {
     val api by lazy { WpClient.api(context) }
 
-    suspend fun getRecentPosts(limit: Int = 10): List<BlogPost> {
+    suspend fun getRecentPosts(limit: Int = AppConfig.getBlogPostsLimit(context)): List<BlogPost> {
         val posts = api.getPosts(perPage = limit, page = 1, embed = 1)
 
         return posts.map { p ->
@@ -44,7 +44,7 @@ class WpRepository(private val context: Context) {
 
     suspend fun getBanners(): List<Banner> {
         // First try to get banner images from media library
-        val apiMediaItems = api.getMedia(perPage = 20, search = null)
+        val apiMediaItems = api.getMedia(perPage = AppConfig.getMediaPerPage(context), search = null)
         val bannerItems = apiMediaItems.filter { item ->
             val title = item.title.rendered.lowercase()
             val altText = item.altText?.lowercase() ?: ""
@@ -164,7 +164,7 @@ class WpRepository(private val context: Context) {
 
     suspend fun getOfferBanners(): List<Banner> {
         // Fetch promotional/offer banners (Diwali sale, festival offers, etc.)
-        val mediaItems = api.getMedia(perPage = 20, search = null)
+        val mediaItems = api.getMedia(perPage = AppConfig.getMediaPerPage(context), search = null)
         
         // Filter for offer/sale/festival related banners
         val offerBanners = mediaItems.filter { item ->
@@ -220,7 +220,7 @@ class WpRepository(private val context: Context) {
     }
 
     // New WordPress API methods
-    suspend fun getPages(limit: Int = 10): List<WpPage> {
+    suspend fun getPages(limit: Int = AppConfig.getBlogPostsLimit(context)): List<WpPage> {
         val pages = api.getPages(perPage = limit)
         return pages.map { p ->
             WpPage(
@@ -234,7 +234,7 @@ class WpRepository(private val context: Context) {
         }
     }
 
-    suspend fun getWpCategories(limit: Int = 100): List<WpCategory> {
+    suspend fun getWpCategories(limit: Int = AppConfig.getBlogPostsLimit(context)): List<WpCategory> {
         val categories = api.getCategories(perPage = limit)
         return categories.map { c ->
             WpCategory(
@@ -247,7 +247,7 @@ class WpRepository(private val context: Context) {
         }
     }
 
-    suspend fun getTags(limit: Int = 100): List<WpTag> {
+    suspend fun getTags(limit: Int = AppConfig.getBlogPostsLimit(context)): List<WpTag> {
         val tags = api.getTags(perPage = limit)
         return tags.map { t ->
             WpTag(
@@ -260,7 +260,7 @@ class WpRepository(private val context: Context) {
         }
     }
 
-    suspend fun getUsers(limit: Int = 10): List<WpUser> {
+    suspend fun getUsers(limit: Int = AppConfig.getBlogPostsLimit(context)): List<WpUser> {
         val users = api.getUsers(perPage = limit)
         return users.map { u ->
             WpUser(
@@ -273,7 +273,7 @@ class WpRepository(private val context: Context) {
         }
     }
 
-    suspend fun getAllMedia(limit: Int = 50): List<WpMediaItem> {
+    suspend fun getAllMedia(limit: Int = AppConfig.getRecentOrdersLimit(context)): List<WpMediaItem> {
         val mediaItems = api.getMedia(perPage = limit, search = null)
         return mediaItems.map { m ->
             WpMediaItem(

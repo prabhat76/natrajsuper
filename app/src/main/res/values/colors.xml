@@ -15,6 +15,7 @@
     <color name="accent_orange">#2196F3</color>
     <color name="light_orange">#E3F2FD</color>
     <color name="dark_red">#0D47A1</color>
+    <color name="primary_light">#E3F2FD</color>
     
     <!-- Custom Toast Colors -->
     <color name="success_green">#4CAF50</color>

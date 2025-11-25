@@ -60,7 +60,7 @@ class APIDebugActivity : AppCompatActivity() {
                 debugText.text = output
                 
                 val products = withContext(Dispatchers.IO) {
-                    repo.getProducts(com.example.natraj.data.woo.FilterParams(perPage = 5), featured = true)
+                    repo.getProducts(com.example.natraj.data.woo.FilterParams(perPage = 5), featured = true) // Keep small for debugging
                 }
                 
                 output += "Products fetched: ${products.size}\n"

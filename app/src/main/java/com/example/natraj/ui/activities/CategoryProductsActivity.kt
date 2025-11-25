@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.natraj.*
+import com.example.natraj.data.AppConfig
 import com.example.natraj.data.WooRepository
 import com.example.natraj.data.woo.FilterParams
 import com.example.natraj.data.woo.WooPrefs
@@ -34,7 +35,7 @@ class CategoryProductsActivity : AppCompatActivity() {
     private var currentPage = 1
     private var isLoading = false
     private var hasMore = true
-    private val perPage = 20
+    private val perPage = AppConfig.getProductsPerPage(this)
 
     // Sorting
     private enum class SortMode { DEFAULT, PRICE_LOW_HIGH, PRICE_HIGH_LOW, NAME_AZ, NEWEST }

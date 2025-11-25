@@ -3,7 +3,6 @@ package com.example.natraj
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -19,13 +18,11 @@ class BannerAdapter(
         private val bannerTitle: TextView = itemView.findViewById(R.id.banner_title)
         private val bannerSubtitle: TextView = itemView.findViewById(R.id.banner_subtitle)
         private val bannerDescription: TextView = itemView.findViewById(R.id.banner_description)
-        private val ctaButton: Button = itemView.findViewById(R.id.banner_cta_button)
 
         fun bind(banner: Banner) {
             bannerTitle.text = banner.title
             bannerSubtitle.text = banner.subtitle
             bannerDescription.text = banner.description
-            ctaButton.text = banner.ctaText
 
             // Load banner image with better quality settings
             if (banner.imageUrl.isNotEmpty()) {
@@ -43,7 +40,6 @@ class BannerAdapter(
             }
 
             itemView.setOnClickListener { onBannerClick(banner) }
-            ctaButton.setOnClickListener { onBannerClick(banner) }
         }
     }
 
