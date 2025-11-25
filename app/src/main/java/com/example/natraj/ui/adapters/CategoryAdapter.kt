@@ -8,9 +8,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.card.MaterialCardView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.google.android.material.card.MaterialCardView
 
 class CategoryAdapter(
     categories: List<Category>,
@@ -59,22 +58,17 @@ class CategoryAdapter(
 
             // Load category image with enhanced styling
             if (category.imageUrl.isNotEmpty()) {
-                // Check if it's an asset file (doesn't start with http)
-                val imageUri = if (!category.imageUrl.startsWith("http")) {
-                    "file:///android_asset/${category.imageUrl}"
-                } else {
-                    category.imageUrl
-                }
-                
-                Glide.with(itemView.context)
-                    .load(imageUri)
-                    .placeholder(R.drawable.ic_category)
-                    .error(R.drawable.ic_category)
-                    .transform(RoundedCorners(20))
+                Glide.with(itemView)
+                    .load(category.imageUrl)
+                    .placeholder(getCategoryImageResId(category.name))
+                    .error(getCategoryImageResId(category.name))
+                    .centerCrop()
                     .into(categoryImage)
             } else {
-                val resId = if (category.imageResId != 0) category.imageResId else R.drawable.ic_category
-                categoryImage.setImageResource(resId)
+                Glide.with(itemView)
+                    .load(getCategoryImageResId(category.name))
+                    .centerCrop()
+                    .into(categoryImage)
             }
 
             // Click: navigate immediately, run animation purely for visual feedback
@@ -85,21 +79,11 @@ class CategoryAdapter(
                 notifyItemChanged(selectedPosition)
 
                 // Trigger navigation right away
-                onCategoryClick(category)
-
-                // Fire-and-forget scale animation
-                itemView.animate()
-                    .scaleX(0.95f)
-                    .scaleY(0.95f)
-                    .setDuration(100)
-                    .withEndAction {
-                        itemView.animate()
-                            .scaleX(1.0f)
-                            .scaleY(1.0f)
-                            .setDuration(100)
-                            .start()
-                    }
-                    .start()
+                try {
+                    onCategoryClick(category)
+                } catch (e: Exception) {
+                    android.util.Log.e("CategoryAdapter", "Error on category click", e)
+                }
             }
 
             // Visual selection state
@@ -129,6 +113,21 @@ class CategoryAdapter(
 
             override fun areContentsTheSame(oldItem: Category, newItem: Category): Boolean =
                 oldItem == newItem
+        }
+
+        private fun getCategoryImageResId(categoryName: String): Int {
+            val name = categoryName.lowercase()
+            return when {
+                name.contains("pump") -> R.drawable.ic_pump
+                name.contains("engine") -> R.drawable.ic_engine
+                name.contains("spray") -> R.drawable.ic_spray
+                name.contains("auger") -> R.drawable.ic_auger
+                name.contains("chaff") -> R.drawable.ic_chaff_cutter
+                name.contains("compressor") -> R.drawable.ic_compressor
+                name.contains("welding") -> R.drawable.ic_welding
+                name.contains("washer") -> R.drawable.ic_washer
+                else -> R.drawable.ic_category
+            }
         }
     }
 }

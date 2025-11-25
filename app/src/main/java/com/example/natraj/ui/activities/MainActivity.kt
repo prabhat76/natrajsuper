@@ -145,4 +145,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    fun switchToCategories() {
+        findViewById<BottomNavigationView>(R.id.bottom_navigation).selectedItemId = R.id.nav_categories
+    }
 }

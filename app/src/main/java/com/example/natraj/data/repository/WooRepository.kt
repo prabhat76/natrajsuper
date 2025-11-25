@@ -14,6 +14,11 @@ class WooRepository(private val context: Context) {
     private val cacheTimeout = AppConfig.getCacheTimeoutMinutes(context) * 60 * 1000L // Dynamic cache timeout
 
     suspend fun getCategories(): List<Category> {
+        val prefs = WooPrefs(context)
+        if (prefs.baseUrl.isNullOrBlank() || prefs.consumerKey.isNullOrBlank()) {
+            return emptyList()
+        }
+
         // Check cache first
         categoriesCache?.let { (timestamp, categories) ->
             if (System.currentTimeMillis() - timestamp < cacheTimeout) {
@@ -31,8 +36,8 @@ class WooRepository(private val context: Context) {
                 hasSpecialOffer = false,
                 productCount = wc.count ?: 0
             )
-        }
-        
+        }.filter { it.id > 0 }
+
         // Update cache
         categoriesCache = System.currentTimeMillis() to categories
         return categories

@@ -42,7 +42,7 @@ class BlogAdapter(
         fun bind(blogPost: BlogPost) {
             // Load image with Glide
             Glide.with(itemView.context)
-                .load(blogPost.imageUrl)
+                .load(if (blogPost.imageUrl.isNotEmpty()) blogPost.imageUrl else R.drawable.natraj_logo)
                 .placeholder(R.drawable.natraj_logo)
                 .error(R.drawable.natraj_logo)
                 .centerCrop()

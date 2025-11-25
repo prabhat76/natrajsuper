@@ -97,10 +97,10 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            app:cardCornerRadius="2dp"
+            app:cardCornerRadius="16dp"
             app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/background_card">
+            app:cardBackgroundColor="@android:color/white"
+            android:layout_margin="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -139,10 +139,8 @@
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/banner_viewpager"
             android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="20dp"
-            android:background="@drawable/gradient_banner"
+            android:layout_height="230dp"
+            android:layout_marginBottom="0dp"
             android:elevation="4dp" />
 
         <!-- Categories Section -->
@@ -214,7 +212,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="🎆 Festival Special Offers"
+                    android:text="🎆 Special Offers"
                     android:textColor="@color/text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />

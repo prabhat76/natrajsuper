@@ -1,27 +1,18 @@
 package com.example.natraj
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
-import android.widget.Toast
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceError
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.natraj.data.woo.WooPrefs
-import com.example.natraj.data.AppConfig
-import com.example.natraj.data.WooRepository
-import com.example.natraj.data.woo.FilterParams
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class CatalogueActivity : AppCompatActivity() {
 
     private lateinit var toolbar: Toolbar
-    private lateinit var productsRecycler: RecyclerView
-    private lateinit var adapter: GridProductAdapter
+    private lateinit var webView: WebView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,13 +20,12 @@ class CatalogueActivity : AppCompatActivity() {
 
         initializeViews()
         setupToolbar()
-        setupProductsGrid()
-        loadProducts()
+        setupWebView()
     }
 
     private fun initializeViews() {
         toolbar = findViewById(R.id.toolbar)
-        productsRecycler = findViewById(R.id.products_recycler)
+        webView = findViewById(R.id.catalogue_webview)
     }
 
     private fun setupToolbar() {
@@ -43,57 +33,52 @@ class CatalogueActivity : AppCompatActivity() {
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
-            title = "Product Catalogue"
+            title = "E-Catalogue"
         }
     }
 
-    private fun setupProductsGrid() {
-        val spanCount = try { resources.getInteger(R.integer.product_grid_columns) } catch (_: Exception) { 2 }
-        productsRecycler.layoutManager = GridLayoutManager(this, spanCount)
+    private fun setupWebView() {
+        try {
+            webView.settings.javaScriptEnabled = true
+            webView.settings.domStorageEnabled = true
+            webView.settings.loadWithOverviewMode = true
+            webView.settings.useWideViewPort = true
+            webView.settings.builtInZoomControls = true
+            webView.settings.displayZoomControls = false
 
-        adapter = GridProductAdapter(mutableListOf()) { product ->
-            val intent = Intent(this@CatalogueActivity, ProductDetailActivity::class.java)
-            intent.putExtra("product", product)
-            startActivity(intent)
-        }
-        productsRecycler.adapter = adapter
-    }
-
-    private fun loadProducts() {
-        val prefs = WooPrefs(this)
-        val canUseWoo = !prefs.baseUrl.isNullOrBlank() && !prefs.consumerKey.isNullOrBlank() && !prefs.consumerSecret.isNullOrBlank()
-
-        if (canUseWoo) {
-            lifecycleScope.launch {
-                try {
-                    val repo = WooRepository(this@CatalogueActivity)
-                    val products = withContext(Dispatchers.IO) {
-                        repo.getProducts(FilterParams(perPage = AppConfig.getProductsPerPage(this@CatalogueActivity))) // Dynamic perPage for catalogue
-                    }
-
-                    if (products.isNotEmpty()) {
-                        adapter.update(products)
-                        Toast.makeText(this@CatalogueActivity, "Loaded ${products.size} products", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this@CatalogueActivity, "No products found", Toast.LENGTH_SHORT).show()
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("CatalogueActivity", "Failed to load products: ${e.message}", e)
-                    Toast.makeText(this@CatalogueActivity, "Failed to load products", Toast.LENGTH_SHORT).show()
+            webView.webViewClient = object : WebViewClient() {
+                override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                    super.onReceivedError(view, request, error)
+                    // Handle error, perhaps show a message
+                    android.util.Log.e("CatalogueActivity", "WebView error: ${error?.description}")
                 }
             }
-        } else {
-            Toast.makeText(this, "Configure WordPress settings to load products", Toast.LENGTH_LONG).show()
+            webView.loadUrl("https://www.natrajsuper.com/e-catalogue/")
+        } catch (e: Exception) {
+            android.util.Log.e("CatalogueActivity", "Error setting up WebView", e)
+            // Fallback or show error
         }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                finish()
+                if (webView.canGoBack()) {
+                    webView.goBack()
+                } else {
+                    finish()
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onBackPressed() {
+        if (webView.canGoBack()) {
+            webView.goBack()
+        } else {
+            super.onBackPressed()
         }
     }
 }

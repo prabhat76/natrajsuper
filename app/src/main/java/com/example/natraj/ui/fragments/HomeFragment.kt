@@ -225,12 +225,14 @@ class HomeFragment : Fragment() {
                     android.util.Log.w("HomeFragment", "No offer banners from WordPress, using fallback")
                     val offers = OfferManager.getAllOffers()
                     offersRecycler.adapter = OfferAdapter(offers) { offer ->
-                        showToast("Offer: ${offer.title}")
+                        val intent = Intent(requireContext(), AllProductsActivity::class.java)
+                        startActivity(intent)
                     }
                 } else {
                     // Use BannerAdapter to display offer banners
                     offersRecycler.adapter = BannerAdapter(offerBanners) { banner ->
-                        showToast("${banner.title}: ${banner.subtitle}")
+                    val intent = Intent(requireContext(), AllProductsActivity::class.java)
+                    startActivity(intent)
                     }
                     android.util.Log.d("HomeFragment", "Loaded ${offerBanners.size} offer banners from WordPress")
                 }
@@ -239,7 +241,8 @@ class HomeFragment : Fragment() {
                 // Fallback to local offers
                 val offers = OfferManager.getAllOffers()
                 offersRecycler.adapter = OfferAdapter(offers) { offer ->
-                    showToast("Offer: ${offer.title}")
+                    val intent = Intent(requireContext(), AllProductsActivity::class.java)
+                    startActivity(intent)
                 }
             }
         }
@@ -327,16 +330,21 @@ class HomeFragment : Fragment() {
         viewAllCategoriesBtn.setOnClickListener {
             android.util.Log.d("HomeFragment", "View All Categories clicked!")
             try {
-                val intent = Intent(requireContext(), AllProductsActivity::class.java)
-                startActivity(intent)
+                (activity as? MainActivity)?.switchToCategories()
             } catch (e: Exception) {
-                android.util.Log.e("HomeFragment", "Error opening AllProductsActivity", e)
+                android.util.Log.e("HomeFragment", "Error switching to categories", e)
                 showToast("Error: ${e.message}")
             }
         }
 
         viewAllOffersBtn.setOnClickListener {
-            showToast("Viewing all offers")
+            try {
+                val intent = Intent(requireContext(), AllProductsActivity::class.java)
+                startActivity(intent)
+            } catch (e: Exception) {
+                android.util.Log.e("HomeFragment", "Error opening AllProductsActivity for offers", e)
+                showToast("Error: ${e.message}")
+            }
         }
 
         viewAllRecommendedBtn.setOnClickListener {

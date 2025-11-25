@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background_color">
+    android:background="@color/background_light">
 
     <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
@@ -16,13 +16,11 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-    <!-- Products Grid -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/products_recycler"
+    <!-- E-Catalogue WebView -->
+    <WebView
+        android:id="@+id/catalogue_webview"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="8dp"
-        android:clipToPadding="false" />
+        android:layout_weight="1" />
 
 </LinearLayout>

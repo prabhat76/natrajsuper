@@ -99,9 +99,9 @@ class GridProductAdapter(
 
             Glide.with(itemView.context)
                 .load(imageUri)
-                .placeholder(R.drawable.ic_launcher_background)
-                .error(R.drawable.ic_launcher_background)
-                .fallback(R.drawable.ic_launcher_background)
+                .placeholder(R.color.background_light)
+                .error(R.color.background_light)
+                .fallback(R.color.background_light)
                 .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
                 .centerCrop()
                 .into(productImage)
@@ -115,20 +115,6 @@ class GridProductAdapter(
                 val added = WishlistManager.toggle(product.id)
                 updateWishlistIcon(product.id)
                 
-                // Animate the icon
-                wishlistIcon.animate()
-                    .scaleX(1.3f)
-                    .scaleY(1.3f)
-                    .setDuration(150)
-                    .withEndAction {
-                        wishlistIcon.animate()
-                            .scaleX(1f)
-                            .scaleY(1f)
-                            .setDuration(150)
-                            .start()
-                    }
-                    .start()
-                
                 val message = if (added) "Added to wishlist" else "Removed from wishlist"
                 CustomToast.showInfo(itemView.context, message)
                 onFavoriteClick(product)
@@ -137,22 +123,8 @@ class GridProductAdapter(
             // Add to Cart button
             addToCartButton.setOnClickListener {
                 if (product.inventory > 0) {
-                    CartManager.add(product)
-                    
-                    // Animate button
-                    it.animate()
-                        .scaleX(0.9f)
-                        .scaleY(0.9f)
-                        .setDuration(100)
-                        .withEndAction {
-                            it.animate()
-                                .scaleX(1f)
-                                .scaleY(1f)
-                                .setDuration(100)
-                                .start()
-                        }
-                        .start()
-                    
+                    CartManager.add(product, 1)
+
                     CustomToast.showSuccess(itemView.context, "Added to cart")
                     onAddToCart(product)
                 } else {

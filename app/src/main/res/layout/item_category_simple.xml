@@ -36,9 +36,8 @@
                 android:layout_height="32dp"
                 android:layout_gravity="center"
                 android:scaleType="centerInside"
-                tools:src="@drawable/ic_category"
-                app:tint="?attr/colorPrimary" />
-                
+                tools:src="@drawable/ic_category" />
+
         </FrameLayout>
 
         <!-- Category Name -->

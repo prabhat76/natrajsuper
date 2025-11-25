@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.recyclerview.widget.RecyclerView
+import android.widget.TextView
 import java.util.Locale
 
 class CategoriesFragment : Fragment() {
@@ -54,6 +55,17 @@ class CategoriesFragment : Fragment() {
         setupSearchBar()
         setupCategories()
         
+        // View All button - scroll to top
+        view.findViewById<TextView>(R.id.view_all_categories)?.setOnClickListener {
+            categoriesRecycler.smoothScrollToPosition(0)
+        }
+
+        // View All Offers button - perhaps show offers or scroll
+        view.findViewById<TextView>(R.id.view_all_offers)?.setOnClickListener {
+            // For now, scroll to categories
+            categoriesRecycler.smoothScrollToPosition(0)
+        }
+
         return view
     }
 
@@ -134,11 +146,15 @@ class CategoriesFragment : Fragment() {
                 if (categories.isNotEmpty()) {
                     allCategories = categories
                     categoryAdapter = CategoryAdapter(categories) { category ->
-                        // Open dedicated CategoryProductsActivity with proper extras
-                        val intent = android.content.Intent(requireContext(), com.example.natraj.ui.activities.CategoryProductsActivity::class.java)
-                        intent.putExtra("category_id", category.id)
-                        intent.putExtra("category_name", category.name)
-                        startActivity(intent)
+                        if (category.id > 0) {
+                            // Open dedicated CategoryProductsActivity with proper extras
+                            val intent = android.content.Intent(requireContext(), com.example.natraj.ui.activities.CategoryProductsActivity::class.java)
+                            intent.putExtra("category_id", category.id)
+                            intent.putExtra("category_name", category.name)
+                            startActivity(intent)
+                        } else {
+                            showToast("Invalid category")
+                        }
                     }
                     categoriesRecycler.adapter = categoryAdapter
                     android.util.Log.d("CategoriesFragment", "Loaded ${categories.size} categories from WordPress")

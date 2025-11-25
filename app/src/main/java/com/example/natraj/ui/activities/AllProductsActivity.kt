@@ -29,8 +29,8 @@ class AllProductsActivity : AppCompatActivity() {
     private var currentPage = 1
     private var isLoading = false
     private var hasMore = true
-    private val perPage = AppConfig.getProductsPerPage(this)
-    
+    private var perPage: Int = 0
+
     private var categoryId: Int? = null
     private var categoryName: String? = null
     
@@ -44,6 +44,8 @@ class AllProductsActivity : AppCompatActivity() {
         categoryId = intent.getIntExtra("extra_category_id", 0).takeIf { it > 0 }
         categoryName = intent.getStringExtra("extra_category_name")
         
+        perPage = AppConfig.getProductsPerPage(this)
+
         initializeViews()
         setupToolbar()
         setupProductsGrid()

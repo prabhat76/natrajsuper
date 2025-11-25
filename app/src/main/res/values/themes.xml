@@ -46,6 +46,7 @@
     <style name="Theme.Natraj.NoActionBar" parent="Theme.Natraj">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@drawable/splash_background</item>
     </style>
 
     <!-- Flipkart Button Styles -->

@@ -35,7 +35,7 @@ class CategoryProductsActivity : AppCompatActivity() {
     private var currentPage = 1
     private var isLoading = false
     private var hasMore = true
-    private val perPage = AppConfig.getProductsPerPage(this)
+    private var perPage: Int = 0
 
     // Sorting
     private enum class SortMode { DEFAULT, PRICE_LOW_HIGH, PRICE_HIGH_LOW, NAME_AZ, NEWEST }
@@ -54,6 +54,8 @@ class CategoryProductsActivity : AppCompatActivity() {
             return
         }
         
+        perPage = AppConfig.getProductsPerPage(this)
+
         initViews()
         setupToolbar()
         setupRecyclerView()

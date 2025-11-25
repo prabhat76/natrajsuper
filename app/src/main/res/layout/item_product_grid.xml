@@ -200,14 +200,12 @@
                 android:id="@+id/add_to_cart_button"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:text="ADD TO CART"
+                android:text="ADD"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/white"
                 android:background="@drawable/bg_button_add_to_cart"
-                android:letterSpacing="0.05"
                 android:elevation="2dp" />
-
         </LinearLayout>
     </LinearLayout>
 
