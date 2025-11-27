@@ -11,13 +11,16 @@ import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.natraj.*
 import com.example.natraj.data.AppConfig
 import com.example.natraj.data.WooRepository
 import com.example.natraj.data.woo.FilterParams
 import com.example.natraj.data.woo.WooPrefs
 import com.example.natraj.util.CustomToast
 import com.example.natraj.util.ThemeUtil
+import com.example.natraj.data.model.Product
+import com.example.natraj.ui.adapters.GridProductAdapter
+import com.example.natraj.ProductDetailActivity
+import com.example.natraj.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,7 +38,7 @@ class CategoryProductsActivity : AppCompatActivity() {
     private var currentPage = 1
     private var isLoading = false
     private var hasMore = true
-    private var perPage: Int = 0
+    private val perPage by lazy { AppConfig.getProductsPerPage(this) }
 
     // Sorting
     private enum class SortMode { DEFAULT, PRICE_LOW_HIGH, PRICE_HIGH_LOW, NAME_AZ, NEWEST }
@@ -53,8 +56,7 @@ class CategoryProductsActivity : AppCompatActivity() {
             finish()
             return
         }
-        
-        perPage = AppConfig.getProductsPerPage(this)
+
 
         initViews()
         setupToolbar()

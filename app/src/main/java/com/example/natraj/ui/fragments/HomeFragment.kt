@@ -1,10 +1,8 @@
 package com.example.natraj
 
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.speech.RecognizerIntent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,19 +11,20 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.example.natraj.R
 import com.example.natraj.data.WooRepository
 import com.example.natraj.data.AppConfig
+import com.example.natraj.data.model.Product
 import com.example.natraj.data.woo.FilterParams
-import com.example.natraj.data.woo.WooClient
 import com.example.natraj.data.woo.WooPrefs
+import com.example.natraj.ui.activities.MainActivity
+import com.example.natraj.ui.adapters.GridProductAdapter
 import com.example.natraj.util.CustomToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,26 +44,12 @@ class HomeFragment : Fragment() {
     private lateinit var cartIcon: ImageView
     private lateinit var cartBadge: TextView
     private lateinit var whatsappOrderBtn: Button
-    private lateinit var viewCatalogueBtn: Button
     private lateinit var viewAllProductsBtn: TextView
     private lateinit var viewAllOffersBtn: TextView
     private lateinit var viewAllRecommendedBtn: TextView
     private lateinit var viewAllBlogBtn: TextView
     private lateinit var viewAllCategoriesBtn: TextView
     
-    private val voiceSearchLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val matches = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            if (!matches.isNullOrEmpty()) {
-                val searchText = matches[0]
-                searchBar.setText(searchText)
-                searchProducts(searchText)
-            }
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -94,7 +79,6 @@ class HomeFragment : Fragment() {
         cartIcon = view.findViewById(R.id.cart_icon)
         cartBadge = view.findViewById(R.id.cart_badge)
         whatsappOrderBtn = view.findViewById(R.id.whatsapp_order_btn)
-        viewCatalogueBtn = view.findViewById(R.id.view_catalogue_btn)
         viewAllOffersBtn = view.findViewById(R.id.view_all_offers)
         viewAllRecommendedBtn = view.findViewById(R.id.view_all_recommended)
         viewAllBlogBtn = view.findViewById(R.id.view_all_blog)
@@ -104,7 +88,7 @@ class HomeFragment : Fragment() {
     private fun setupSearchBar() {
         // Voice search on icon click
         searchIcon.setOnClickListener {
-            startVoiceSearch()
+            showToast("Voice search not available")
         }
         
         // Text search
@@ -117,21 +101,6 @@ class HomeFragment : Fragment() {
                 true
             } else {
                 false
-            }
-        }
-    }
-    
-    private fun startVoiceSearch() {
-        try {
-            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-                putExtra(RecognizerIntent.EXTRA_PROMPT, "Say product name or category...")
-            }
-            voiceSearchLauncher.launch(intent)
-        } catch (e: Exception) {
-            if (isAdded && context != null) {
-                Toast.makeText(requireContext(), "Voice search not available", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -214,37 +183,19 @@ class HomeFragment : Fragment() {
         offersRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         offersRecycler.setItemViewCacheSize(10)
         
-        // Fetch offer banners dynamically from WordPress
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val repo = com.example.natraj.data.WpRepository(requireContext())
-                val offerBanners = withContext(Dispatchers.IO) { repo.getOfferBanners() }
-                
-                if (offerBanners.isEmpty()) {
-                    // Fallback to OfferManager if no banners found
-                    android.util.Log.w("HomeFragment", "No offer banners from WordPress, using fallback")
-                    val offers = OfferManager.getAllOffers()
-                    offersRecycler.adapter = OfferAdapter(offers) { offer ->
-                        val intent = Intent(requireContext(), AllProductsActivity::class.java)
-                        startActivity(intent)
-                    }
-                } else {
-                    // Use BannerAdapter to display offer banners
-                    offersRecycler.adapter = BannerAdapter(offerBanners) { banner ->
-                    val intent = Intent(requireContext(), AllProductsActivity::class.java)
-                    startActivity(intent)
-                    }
-                    android.util.Log.d("HomeFragment", "Loaded ${offerBanners.size} offer banners from WordPress")
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("HomeFragment", "Offer banners fetch failed: ${e.message}", e)
-                // Fallback to local offers
-                val offers = OfferManager.getAllOffers()
-                offersRecycler.adapter = OfferAdapter(offers) { offer ->
-                    val intent = Intent(requireContext(), AllProductsActivity::class.java)
-                    startActivity(intent)
-                }
+        // Use local offers
+        val offers = OfferManager.getAllOffers()
+        if (offers.isEmpty()) {
+            // Show coming soon message
+            offersRecycler.visibility = View.GONE
+            view?.findViewById<TextView>(R.id.offers_coming_soon)?.visibility = View.VISIBLE
+            android.util.Log.w("HomeFragment", "No offers available, showing coming soon")
+        } else {
+            offersRecycler.adapter = OfferAdapter(offers) { offer ->
+                val intent = Intent(requireContext(), AllProductsActivity::class.java)
+                startActivity(intent)
             }
+            android.util.Log.d("HomeFragment", "Loaded ${offers.size} local offers")
         }
     }
 
@@ -317,11 +268,6 @@ class HomeFragment : Fragment() {
     private fun setupClickListeners() {
         whatsappOrderBtn.setOnClickListener { openWhatsApp() }
         
-        viewCatalogueBtn.setOnClickListener {
-            val intent = Intent(requireContext(), CatalogueActivity::class.java)
-            startActivity(intent)
-        }
-
         cartIcon.setOnClickListener {
             // Navigate to cart fragment
             (activity as? MainActivity)?.let { it.switchFragment(CartFragment()) }
@@ -379,7 +325,7 @@ class HomeFragment : Fragment() {
             val phoneNumber = AppConfig.getWhatsAppNumber(requireContext()) // Dynamic WhatsApp number
             val message = "Hi! I'm interested in your Diwali offers. Please share more details."
             val encodedMessage = Uri.encode(message)
-            val whatsappUri = "https://wa.me/$phoneNumber?text=$encodedMessage"
+            val whatsappUri = "https://wa.me/917851979226?text=$encodedMessage"
             
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(whatsappUri))
             startActivity(intent)

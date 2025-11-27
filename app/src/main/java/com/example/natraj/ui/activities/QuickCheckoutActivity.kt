@@ -1,4 +1,4 @@
-package com.example.natraj
+package com.example.natraj.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,12 +8,16 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
+import com.example.natraj.AuthManager
+import com.example.natraj.R
 import com.example.natraj.data.WooRepository
 import com.example.natraj.data.woo.*
-import com.example.natraj.ui.activities.ErrorActivity
 import com.example.natraj.util.CustomToast
 import com.example.natraj.util.FormValidator
 import com.example.natraj.util.LocationHelper
+import com.example.natraj.data.model.Product
+
+import com.example.natraj.util.manager.AddressManager
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Dispatchers

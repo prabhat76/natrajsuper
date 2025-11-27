@@ -11,6 +11,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.Toast
+import com.example.natraj.R
+import com.example.natraj.ui.activities.MainActivity
+
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class CartFragment : Fragment() {
@@ -115,7 +118,7 @@ class CartFragment : Fragment() {
             
             // Check minimum order amount
             val items = CartManager.getItems()
-            val subtotal = items.sumOf { it.product.price * it.quantity }
+            val subtotal = items.sumOf { (it.product.price * it.quantity).toDouble() }
             val MINIMUM_ORDER_AMOUNT = 700.0
             
             if (subtotal < MINIMUM_ORDER_AMOUNT) {
@@ -162,13 +165,13 @@ class CartFragment : Fragment() {
                 summaryCard.visibility = View.VISIBLE
                 recycler.visibility = View.VISIBLE
                 
-                val subtotal = items.sumOf { it.product.price * it.quantity }
+                val subtotal = items.sumOf { (it.product.price * it.quantity).toDouble() }
                 val discount = subtotal * 0.05 // 5% discount
                 val afterDiscount = subtotal - discount
                 val delivery = if (afterDiscount > 50000) 0.0 else 500.0
                 val total = afterDiscount + delivery
                 
-                val totalItems = items.sumOf { it.quantity }
+                val totalItems = items.sumOf { it.quantity.toDouble() }
                 itemCountText.text = "Price ($totalItems items)"
                 subtotalText.text = "₹${subtotal.toInt()}"
                 discountText.text = "− ₹${discount.toInt()}"
@@ -199,4 +202,3 @@ class CartFragment : Fragment() {
             .show()
     }
 }
-

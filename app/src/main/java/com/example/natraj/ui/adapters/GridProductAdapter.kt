@@ -1,4 +1,4 @@
-package com.example.natraj
+package com.example.natraj.ui.adapters
 
 import android.content.Intent
 import android.view.LayoutInflater
@@ -10,7 +10,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.natraj.CartManager
+import com.example.natraj.R
+import com.example.natraj.WishlistManager
 import com.example.natraj.util.CustomToast
+import com.example.natraj.data.model.Product
 
 class GridProductAdapter(
     private var products: MutableList<Product> = mutableListOf(),

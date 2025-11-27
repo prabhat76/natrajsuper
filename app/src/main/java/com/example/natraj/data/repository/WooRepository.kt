@@ -2,7 +2,7 @@ package com.example.natraj.data
 
 import android.content.Context
 import com.example.natraj.Category
-import com.example.natraj.Product
+import com.example.natraj.data.model.Product
 import com.example.natraj.data.woo.*
 
 class WooRepository(private val context: Context) {
@@ -199,6 +199,12 @@ class WooRepository(private val context: Context) {
             meta_data = metaData
         )
         return api.updateCustomer(customerId, body)
+    }
+
+    suspend fun getVyaparUpiId(): String {
+        // Try to get from WooCommerce settings or options
+        // For now, return a default or fetch from a custom endpoint
+        return "vyapar@upi" // Replace with actual fetching logic
     }
 
     private fun mapProduct(p: WooProduct): Product {

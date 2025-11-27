@@ -8,7 +8,7 @@ object OrderManager {
     private val listeners = mutableListOf<() -> Unit>()
 
     fun placeOrder(items: List<CartItem>, address: Address, paymentMethod: String): Order {
-        val total = items.sumOf { it.product.price * it.quantity }
+        val total = items.sumOf { (it.product.price * it.quantity).toDouble() }
         val order = Order(
             id = UUID.randomUUID().toString().substring(0, 8).uppercase(),
             items = items.toList(),

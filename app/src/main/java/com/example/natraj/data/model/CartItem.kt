@@ -1,5 +1,6 @@
 package com.example.natraj
 
+import com.example.natraj.data.model.Product
 import java.io.Serializable
 
 data class CartItem(

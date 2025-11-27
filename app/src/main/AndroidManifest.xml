@@ -7,9 +7,9 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -28,7 +28,7 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".SplashActivity"
+            android:name=".ui.activities.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.Natraj.NoActionBar">
             <intent-filter>
@@ -38,19 +38,19 @@
         </activity>
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activities.MainActivity"
             android:exported="false"
             android:theme="@style/Theme.Natraj.NoActionBar" />
 
         <activity
             android:name=".AllProductsActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.activities.MainActivity" />
 
         <activity
             android:name=".ui.activities.CategoryProductsActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.activities.MainActivity" />
 
         <activity
             android:name=".ProductDetailActivity"
@@ -60,7 +60,7 @@
         <activity
             android:name=".AddressActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.activities.MainActivity" />
 
         <activity
             android:name=".PaymentActivity"
@@ -68,29 +68,29 @@
             android:parentActivityName=".AddressActivity" />
 
         <activity
-            android:name=".OrderConfirmationActivity"
+            android:name=".ui.activities.OrderConfirmationActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.activities.MainActivity" />
 
         <activity
             android:name=".OrdersActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.activities.MainActivity" />
 
         <activity
             android:name=".ui.activities.WishlistActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.activities.MainActivity" />
 
         <activity
             android:name=".ui.activities.AccountDetailsActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.activities.MainActivity" />
 
         <activity
             android:name=".BlogActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.activities.MainActivity" />
 
         <activity
             android:name=".BlogDetailActivity"
@@ -98,7 +98,7 @@
             android:parentActivityName=".BlogActivity" />
 
         <activity
-            android:name=".ErrorActivity"
+            android:name=".ui.activities.ErrorActivity"
             android:exported="false"
             android:theme="@style/Theme.Natraj.NoActionBar" />
 
@@ -108,9 +108,9 @@
             android:theme="@style/Theme.Natraj.NoActionBar" />
 
         <activity
-            android:name=".QuickCheckoutActivity"
+            android:name=".ui.activities.QuickCheckoutActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.activities.MainActivity" />
 
         <activity
             android:name=".LoginActivity"
@@ -118,19 +118,9 @@
             android:theme="@style/Theme.Natraj.NoActionBar" />
 
         <activity
-            android:name=".SignupActivity"
+            android:name=".ui.activities.SignupActivity"
             android:exported="false"
             android:theme="@style/Theme.Natraj.NoActionBar" />
-
-        <activity
-            android:name=".ui.activities.APIDebugActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
-
-        <activity
-            android:name=".ui.activities.WordPressSettingsActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
 
         <service
             android:name=".util.kafka.KafkaNotificationService"

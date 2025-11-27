@@ -9,7 +9,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+
+import com.example.natraj.R
+
 import com.example.natraj.data.WooRepository
+import com.example.natraj.ui.activities.MainActivity
+import com.example.natraj.ui.activities.SignupActivity
 import com.example.natraj.util.CustomToast
 import com.example.natraj.util.sync.AccountSyncManager
 import kotlinx.coroutines.Dispatchers

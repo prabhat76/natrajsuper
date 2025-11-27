@@ -2,6 +2,7 @@ package com.example.natraj
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.natraj.data.model.Product
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -95,9 +96,9 @@ object CartManager {
 
     fun getProductCount(): Int = items.size
 
-    fun subtotal(): Double = items.sumOf { it.product.price * it.quantity }
+    fun subtotal(): Double = items.sumOf { (it.product.price * it.quantity).toDouble() }
 
-    fun discountAmount(): Double = items.sumOf { ((it.product.originalPrice - it.product.price).coerceAtLeast(0.0)) * it.quantity }
+    fun discountAmount(): Double = items.sumOf { ((it.product.originalPrice - it.product.price).coerceAtLeast(0.0) * it.quantity).toDouble() }
 
     fun total(): Double = (subtotal() - discountAmount())
 }

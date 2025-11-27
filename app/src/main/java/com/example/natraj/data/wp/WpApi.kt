@@ -79,7 +79,9 @@ data class WpUser(
     val slug: String,
     val description: String,
     @SerializedName("avatar_urls") val avatarUrls: Map<String, String>?
-)
+) {
+
+}
 
 // Authentication models
 data class WpLoginRequest(

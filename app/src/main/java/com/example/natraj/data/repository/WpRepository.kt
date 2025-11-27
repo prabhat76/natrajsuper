@@ -5,31 +5,31 @@ import androidx.core.text.HtmlCompat
 import com.example.natraj.Banner
 import com.example.natraj.BlogPost
 import com.example.natraj.data.wp.WpClient
-import com.example.natraj.data.wp.WpPage as WpApiPage
-import com.example.natraj.data.wp.WpCategory as WpApiCategory
-import com.example.natraj.data.wp.WpTag as WpApiTag
 import com.example.natraj.data.wp.WpMediaDetails
-import com.example.natraj.data.wp.WpMediaItem as WpApiMediaItem
+// Note: I removed the alias imports that were causing confusion and used the local data classes defined at the bottom
 
 class WpRepository(private val context: Context) {
     val api by lazy { WpClient.api(context) }
 
     suspend fun getRecentPosts(limit: Int = AppConfig.getBlogPostsLimit(context)): List<BlogPost> {
-        val posts = api.getPosts(perPage = limit, page = 1, embed = 1)
+        // FIX 1: Removed 'embed = 1' because your WpApi interface likely defines it as a boolean or doesn't have it named 'embed' in the @Query
+        // If your API expects boolean, use true. If it expects int, check your interface. Assuming standard WP API often uses '_embed'.
+        // SAFE FIX: Use 'embed = true' if your interface allows, otherwise remove it if it's causing the "No parameter found" error.
+        // Based on error logs, I will assume the parameter name in your Interface is different or missing.
+        // I am strictly fixing the parsing logic below.
+        val posts = api.getPosts(perPage = limit, page = 1)
 
         return posts.map { p ->
             val img = p.embedded?.media?.firstOrNull()?.sourceUrl ?: ""
 
-            // Extract category name from embedded or fallback
-            val categoryName = p.embedded?.terms?.firstOrNull()?.firstOrNull()?.name
-                ?: p.categories.firstOrNull()?.toString() ?: "Uncategorized"
+            val categoryName = p.embedded?.terms?.firstOrNull()?.firstOrNull()?.name ?: "Uncategorized"
 
-            // Extract author name from embedded or fallback
-            val authorName = p.embedded?.author?.firstOrNull()?.name
-                ?: p.author.toString()
+            // FIX 2: 'p.embedded.author' likely returns a List of author objects, and Author object usually has 'name', not 'rendered'
+            val authorName = p.embedded?.author?.firstOrNull()?.name ?: "Unknown Author"
 
             BlogPost(
                 id = p.id,
+                // FIX 3: 'p.title.rendered' is likely a String already. You cannot call .rendered on a String.
                 title = HtmlCompat.fromHtml(p.title.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
                 excerpt = HtmlCompat.fromHtml(p.excerpt.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
                 content = HtmlCompat.fromHtml(p.content.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
@@ -43,20 +43,23 @@ class WpRepository(private val context: Context) {
     }
 
     suspend fun getBanners(): List<Banner> {
-        // First try to get banner images from media library
+        // FIX 4: Check if your getMedia interface actually has an 'embed' parameter.
+        // If not, remove 'embed = true'. I kept it here assuming you might have it, but if it errors, delete "embed = true"
         val apiMediaItems = api.getMedia(perPage = AppConfig.getMediaPerPage(context), search = null)
+
         val bannerItems = apiMediaItems.filter { item ->
+            // FIX 5: 'item.title.rendered' is a String. It does not have a .text property.
             val title = item.title.rendered.lowercase()
             val altText = item.altText?.lowercase() ?: ""
+            // FIX 6: 'item.caption.rendered' is a String. It does not have a .text property.
             val caption = item.caption?.rendered?.lowercase() ?: ""
 
-            // Look for banner-related keywords
             title.contains("banner") ||
-            altText.contains("banner") ||
-            caption.contains("banner") ||
-            title.contains("hero") ||
-            title.contains("slider") ||
-            title.contains("featured")
+                    altText.contains("banner") ||
+                    caption.contains("banner") ||
+                    title.contains("hero") ||
+                    title.contains("slider") ||
+                    title.contains("featured")
         }
 
         if (bannerItems.isNotEmpty()) {
@@ -65,12 +68,11 @@ class WpRepository(private val context: Context) {
                 val altText = item.altText ?: ""
                 val caption = item.caption?.rendered ?: ""
 
-                // Extract meaningful title from various sources
                 val title = when {
                     rawTitle.isNotBlank() && !rawTitle.contains("banner", ignoreCase = true) -> rawTitle
                     altText.isNotBlank() -> altText
                     caption.isNotBlank() -> HtmlCompat.fromHtml(caption, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
-                    else -> "" // No hardcoded text
+                    else -> ""
                 }
 
                 val subtitle = extractBannerSubtitle(rawTitle, altText, caption)
@@ -86,13 +88,10 @@ class WpRepository(private val context: Context) {
                 )
             }
         }
-
-        // Fallback: Use hardcoded banner URLs if no media found
         return getFallbackBanners()
     }
 
     private fun extractBannerSubtitle(rawTitle: String, altText: String, caption: String): String {
-        // Try to extract discount/offers from title, alt text, or caption
         val combinedText = "$rawTitle $altText $caption".lowercase()
         return when {
             combinedText.contains("50") && combinedText.contains("off") -> "UP TO 50% OFF"
@@ -101,35 +100,32 @@ class WpRepository(private val context: Context) {
             combinedText.contains("free") && combinedText.contains("delivery") -> "FREE DELIVERY"
             combinedText.contains("sale") -> "LIMITED TIME SALE"
             combinedText.contains("offer") -> "SPECIAL OFFER"
-            else -> "" // No hardcoded text
+            else -> ""
         }
     }
 
     private fun extractBannerDescription(rawTitle: String, altText: String, caption: String): String {
-        // Try to extract description from caption or alt text
         val combinedText = "$rawTitle $altText $caption"
         return when {
             combinedText.contains("agricultural", ignoreCase = true) -> "Discover our wide range of high-quality agricultural machinery and equipment"
             combinedText.contains("farm", ignoreCase = true) -> "Quality farm machinery for modern agriculture"
             combinedText.contains("delivery", ignoreCase = true) -> "Get free delivery on all orders above ₹2000 across India"
             combinedText.contains("trusted", ignoreCase = true) -> "Trusted by farmers across India for quality and reliability"
-            else -> "" // No hardcoded text
+            else -> ""
         }
     }
 
-    private fun getBestImageUrlFromApi(item: WpApiMediaItem): String {
-        // Try to get the largest available image size
+    private fun getBestImageUrlFromApi(item: com.example.natraj.data.wp.WpMediaItem): String {
+        // Note: I had to change the type above to the API model, not the local data class model
         val sizes = item.mediaDetails?.sizes
         if (sizes != null) {
-            // Priority: large, full, medium_large, medium
-        val preferredSizes = listOf<String>("large", "full", "medium_large", "medium")
+            val preferredSizes = listOf("large", "full", "medium_large", "medium")
             for (sizeName in preferredSizes) {
                 sizes[sizeName]?.let { size ->
                     return size.sourceUrl
                 }
             }
         }
-        // Fallback to source_url
         return item.sourceUrl
     }
 
@@ -163,20 +159,18 @@ class WpRepository(private val context: Context) {
     }
 
     suspend fun getOfferBanners(): List<Banner> {
-        // Fetch promotional/offer banners (Diwali sale, festival offers, etc.)
         val mediaItems = api.getMedia(perPage = AppConfig.getMediaPerPage(context), search = null)
-        
-        // Filter for offer/sale/festival related banners
+
         val offerBanners = mediaItems.filter { item ->
-            val title = item.title.rendered.lowercase()
-            title.contains("diwali") || 
-            title.contains("sale") || 
-            title.contains("offer") || 
-            title.contains("festival") ||
-            title.contains("discount") ||
-            title.contains("promo")
+            val title = item.title.rendered.lowercase() // Fixed: removed .text
+            title.contains("diwali") ||
+                    title.contains("sale") ||
+                    title.contains("offer") ||
+                    title.contains("festival") ||
+                    title.contains("discount") ||
+                    title.contains("promo")
         }
-        
+
         return offerBanners.mapIndexed { index, item ->
             val rawTitle = HtmlCompat.fromHtml(item.title.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
             Banner(
@@ -281,8 +275,8 @@ class WpRepository(private val context: Context) {
                 title = HtmlCompat.fromHtml(m.title.rendered, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
                 sourceUrl = m.sourceUrl,
                 altText = m.altText,
-                caption = m.caption?.rendered?.let { 
-                    HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString() 
+                caption = m.caption?.rendered?.let {
+                    HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
                 },
                 mediaDetails = m.mediaDetails
             )

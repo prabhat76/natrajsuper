@@ -1,4 +1,4 @@
-package com.example.natraj
+package com.example.natraj.ui.activities
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -11,6 +11,17 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import com.example.natraj.AuthManager
+import com.example.natraj.BlogManager
+import com.example.natraj.CartFragment
+import com.example.natraj.CartManager
+import com.example.natraj.CategoriesFragment
+import com.example.natraj.HomeFragment
+import com.example.natraj.OfferManager
+import com.example.natraj.ProductManager
+import com.example.natraj.R
+import com.example.natraj.ui.fragments.ProfileFragment
+
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {

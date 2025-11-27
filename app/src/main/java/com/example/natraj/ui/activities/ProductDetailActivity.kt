@@ -16,6 +16,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
+import com.example.natraj.data.model.Product
+import com.example.natraj.ui.activities.MainActivity
+import com.example.natraj.ui.activities.QuickCheckoutActivity
 
 class ProductDetailActivity : AppCompatActivity() {
 

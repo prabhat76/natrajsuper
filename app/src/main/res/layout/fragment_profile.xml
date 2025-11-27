@@ -175,54 +175,6 @@
                 android:elevation="2dp">
 
                 <LinearLayout
-                    android:id="@+id/profile_theme_section"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:background="?attr/selectableItemBackground">
-
-                    <TextView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:text="🎨"
-                        android:textSize="20sp"
-                        android:gravity="center" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="16dp"
-                        android:text="Theme"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:gravity="center_vertical" />
-
-                    <TextView
-                        android:id="@+id/profile_theme_status"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Light"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp"
-                        android:layout_marginEnd="8dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="›"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="18sp" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/light_gray"
-                    android:layout_marginStart="64dp" />
-
-                <LinearLayout
                     android:id="@+id/profile_account_section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -1,14 +1,19 @@
-package com.example.natraj
+package com.example.natraj.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.animation.AnimationUtils
+import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import com.example.natraj.AuthManager
+import com.example.natraj.LoginActivity
+import com.example.natraj.R
+
 
 class SplashActivity : AppCompatActivity() {
     
@@ -23,7 +28,13 @@ class SplashActivity : AppCompatActivity() {
         
         // Initialize AuthManager
         AuthManager.initialize(this)
-        
+
+        // Set full screen flags
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
+
         // Start animations
         startAnimations()
 
@@ -38,32 +49,32 @@ class SplashActivity : AppCompatActivity() {
             finish()
         }, splashDelay)
     }
-    
+
     private fun startAnimations() {
         try {
             // Logo card animation - scale and fade in
             val logoCard = findViewById<CardView>(R.id.logo_card)
             val scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.scale_fade_in)
             logoCard.startAnimation(scaleAnimation)
-            
+
             // Brand name animation - fade in with delay
             val brandName = findViewById<TextView>(R.id.brand_name)
             val fadeInAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_in)
             fadeInAnimation.startOffset = 300
             brandName.startAnimation(fadeInAnimation)
-            
+
             // Subtitle animation - fade in with delay
             val subtitle = findViewById<TextView>(R.id.subtitle_text)
             val subtitleAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_in)
             subtitleAnimation.startOffset = 500
             subtitle.startAnimation(subtitleAnimation)
-            
+
             // Loading container animation - slide up and fade in
             val loadingContainer = findViewById<android.view.View>(R.id.loading_container)
             val slideUpAnimation = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in)
             slideUpAnimation.startOffset = 700
             loadingContainer.startAnimation(slideUpAnimation)
-            
+
         } catch (e: Exception) {
             android.util.Log.e("SplashActivity", "Error starting animations", e)
         }

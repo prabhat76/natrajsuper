@@ -13,8 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.lifecycle.lifecycleScope
 import com.example.natraj.data.AppConfig
 import com.example.natraj.data.WooRepository
+import com.example.natraj.data.model.Product
 import com.example.natraj.data.woo.FilterParams
 import com.example.natraj.data.woo.WooPrefs
+import com.example.natraj.ui.adapters.GridProductAdapter
 import com.example.natraj.util.ThemeUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -72,7 +74,7 @@ class AllProductsActivity : AppCompatActivity() {
         val spanCount = try { resources.getInteger(R.integer.product_grid_columns) } catch (_: Exception) { 2 }
         productsRecycler.layoutManager = GridLayoutManager(this, spanCount)
         
-        adapter = GridProductAdapter(mutableListOf()) { product ->
+        adapter = GridProductAdapter(mutableListOf<Product>()) { product ->
             val intent = Intent(this@AllProductsActivity, ProductDetailActivity::class.java)
             intent.putExtra("product", product)
             startActivity(intent)

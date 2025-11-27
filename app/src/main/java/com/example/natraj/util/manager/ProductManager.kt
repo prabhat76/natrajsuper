@@ -3,6 +3,7 @@ package com.example.natraj
 import android.content.Context
 import com.example.natraj.data.WooRepository
 import com.example.natraj.data.AppConfig
+import com.example.natraj.data.model.Product
 import com.example.natraj.data.woo.WooPrefs
 import kotlinx.coroutines.runBlocking
 

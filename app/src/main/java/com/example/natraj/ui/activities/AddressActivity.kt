@@ -12,6 +12,7 @@ import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.example.natraj.ui.activities.MainActivity
 
 class AddressActivity : AppCompatActivity() {
 
@@ -41,7 +42,7 @@ class AddressActivity : AppCompatActivity() {
         if (AuthManager.isLoggedIn()) {
             nameInput.setText(AuthManager.getUserName())
             mobileInput.setText(AuthManager.getUserPhone())
-            
+
             // Load saved address if available
             loadSavedAddress()
         }
@@ -88,7 +89,7 @@ class AddressActivity : AppCompatActivity() {
                 state = state,
                 addressType = addressType
             )
-            
+
             // Save address for logged-in users
             if (AuthManager.isLoggedIn()) {
                 saveAddressForFuture(deliveryAddress)
@@ -100,13 +101,13 @@ class AddressActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
-    
+
     private fun loadSavedAddress() {
         // Only load saved addresses for logged-in users
         if (!AuthManager.isLoggedIn()) {
             return
         }
-        
+
         val defaultAddress = com.example.natraj.util.manager.AddressManager.getDefaultAddress()
         defaultAddress?.let {
             addressInput.setText(it.addressLine)
@@ -114,13 +115,13 @@ class AddressActivity : AppCompatActivity() {
             // Extract city and state from saved address if available
         }
     }
-    
+
     private fun saveAddressForFuture(address: Address) {
         // Only save addresses for logged-in users
         if (!AuthManager.isLoggedIn()) {
             return
         }
-        
+
         val savedAddress = com.example.natraj.util.manager.SavedAddress(
             name = address.name,
             phone = address.mobile,
@@ -128,7 +129,7 @@ class AddressActivity : AppCompatActivity() {
             pincode = address.pincode,
             isDefault = !com.example.natraj.util.manager.AddressManager.hasAddresses()
         )
-        
+
         com.example.natraj.util.manager.AddressManager.saveAddress(savedAddress)
     }
 

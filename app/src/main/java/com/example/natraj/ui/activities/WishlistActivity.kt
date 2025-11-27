@@ -12,14 +12,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.natraj.CartManager
-import com.example.natraj.GridProductAdapter
-import com.example.natraj.Product
+
 import com.example.natraj.ProductDetailActivity
 import com.example.natraj.R
 import com.example.natraj.WishlistManager
-import com.example.natraj.data.WooRepository
 import com.example.natraj.data.AppConfig
+import com.example.natraj.data.WooRepository
+import com.example.natraj.data.model.Product
 import com.example.natraj.data.woo.WooPrefs
+import com.example.natraj.ui.adapters.GridProductAdapter
 import com.example.natraj.util.CustomToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

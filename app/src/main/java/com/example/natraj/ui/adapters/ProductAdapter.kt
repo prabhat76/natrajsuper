@@ -11,6 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.natraj.data.model.Product
 
 class ProductAdapter(
     private val products: List<Product>,

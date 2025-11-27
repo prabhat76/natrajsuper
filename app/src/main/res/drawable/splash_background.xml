@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Background -->
-    <item android:drawable="@color/background_light" />
-
-    <!-- Logo centered -->
+    <!-- Gradient Background -->
     <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/natraj_logo_official" />
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="@color/primary"
+                android:endColor="@color/primary_dark"
+                android:angle="90" />
+        </shape>
     </item>
 </layer-list>
-

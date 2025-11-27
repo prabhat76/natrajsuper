@@ -7,7 +7,6 @@ import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.natraj.MainActivity
 import com.example.natraj.R
 import com.example.natraj.util.error.AppErrorHandler
 import com.example.natraj.util.error.ErrorType

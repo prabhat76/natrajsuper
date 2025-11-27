@@ -16,11 +16,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.natraj.R
 import com.example.natraj.data.WooRepository
 import com.example.natraj.data.AppConfig
-import com.example.natraj.data.woo.WooPrefs
+
 import com.example.natraj.data.woo.WooOrderResponse
+import com.example.natraj.data.woo.WooPrefs
 import com.example.natraj.ui.activities.ErrorActivity
+
+import com.example.natraj.ui.activities.OrderConfirmationActivity
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -209,20 +214,12 @@ class OrdersActivity : AppCompatActivity() {
                 swipeRefresh.isRefreshing = false
                 Log.e(TAG, "✗ Failed to fetch WooCommerce orders", e)
                 
-                // Show error screen if no local orders
-                val localOrders = OrderManager.getOrders()
-                if (localOrders.isEmpty()) {
-                    ErrorActivity.showFromException(
-                        this@OrdersActivity,
-                        e,
-                        showRetry = true
-                    )
-                } else {
-                    Toast.makeText(this@OrdersActivity, 
-                        "Showing local orders. Unable to connect to server.", 
-                        Toast.LENGTH_LONG).show()
-                    loadLocalOrders()
-                }
+                // Show error screen since we don't have local orders fallback
+                ErrorActivity.showFromException(
+                    this@OrdersActivity,
+                    e,
+                    showRetry = true
+                )
             }
         }
     }
@@ -231,7 +228,8 @@ class OrdersActivity : AppCompatActivity() {
         Log.d(TAG, "Loading local orders...")
         progressBar.visibility = View.GONE
         
-        val orders = OrderManager.getOrders()
+        // For now, show empty state since we're focusing on WooCommerce orders
+        val orders = emptyList<Order>()
         Log.d(TAG, "Local orders count: ${orders.size}")
 
         if (orders.isEmpty()) {

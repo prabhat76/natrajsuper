@@ -1,5 +1,6 @@
 package com.example.natraj
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -20,7 +21,9 @@ import com.example.natraj.data.woo.WooOrderLineItem
 import com.example.natraj.data.woo.WooPaymentGateway
 import com.example.natraj.data.woo.WooPrefs
 import com.example.natraj.data.woo.WooShipping
+import com.example.natraj.ui.activities.OrderConfirmationActivity
 import com.example.natraj.util.CustomToast
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,6 +34,14 @@ class PaymentActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var placeOrderButton: Button
     private val TAG = "PaymentActivity"
+
+    private lateinit var paymentGroup: RadioGroup
+    private lateinit var cartItems: List<CartItem>
+    private var totalAmount: Double = 0.0
+    private var gatewayId: String = ""
+    private var paymentTitle: String = ""
+
+    private val UPI_PAYMENT_REQUEST = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +65,7 @@ class PaymentActivity : AppCompatActivity() {
         val discount = findViewById<TextView>(R.id.payment_discount)
         val delivery = findViewById<TextView>(R.id.payment_delivery)
         val total = findViewById<TextView>(R.id.payment_total)
-        val paymentGroup = findViewById<RadioGroup>(R.id.payment_method_group)
+        paymentGroup = findViewById<RadioGroup>(R.id.payment_method_group)
         placeOrderButton = findViewById<Button>(R.id.payment_place_order_btn)
         progressBar = findViewById<ProgressBar>(R.id.payment_progress_bar)
 
@@ -70,14 +81,14 @@ class PaymentActivity : AppCompatActivity() {
         addressText.text = "${address.name}, ${address.mobile}\n${address.address}, ${address.locality}\n${address.city}, ${address.state} - ${address.pincode}"
 
         // Calculate amounts
-        val cartItems = CartManager.getItems()
+        cartItems = CartManager.getItems()
         Log.d(TAG, "Cart has ${cartItems.size} items")
         
         val itemCount = cartItems.size
         val subtotalAmount = cartItems.sumOf { it.product.price * it.quantity }
         val discountAmount = subtotalAmount * 0.05 // 5% discount
         val deliveryCharge = if (subtotalAmount > 50000) 0.0 else 500.0
-        val totalAmount = subtotalAmount - discountAmount + deliveryCharge
+        totalAmount = subtotalAmount - discountAmount + deliveryCharge
 
         itemsCount.text = "Price ($itemCount items)"
         subtotal.text = "₹${subtotalAmount.toInt()}"
@@ -164,11 +175,18 @@ class PaymentActivity : AppCompatActivity() {
         }
         
         val selectedRadio = findViewById<RadioButton>(selectedId)
-        val gatewayId = selectedRadio.tag as? String ?: "cod"
-        val paymentTitle = selectedRadio.text.toString()
-        
+        gatewayId = selectedRadio.tag as? String ?: "cod"
+        paymentTitle = selectedRadio.text.toString()
+
         Log.d(TAG, "Selected payment: $paymentTitle (gateway: $gatewayId)")
         
+        // Handle UPI payment separately
+        if (gatewayId == "razorpay" || gatewayId == "qr") {
+            Log.d(TAG, "Online payment selected, showing coming soon dialog")
+            showComingSoonDialog()
+            return
+        }
+
         // Show progress
         progressBar.visibility = View.VISIBLE
         placeOrderButton.isEnabled = false
@@ -378,6 +396,7 @@ class PaymentActivity : AppCompatActivity() {
         val options = listOf(
             "cod" to "Cash on Delivery",
             "razorpay" to "Online Payment (UPI/Card/Netbanking)",
+            "qr" to "QR Code Payment",
             "bacs" to "Direct Bank Transfer"
         )
         
@@ -508,5 +527,103 @@ class PaymentActivity : AppCompatActivity() {
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(intent)
         finish()
+    }
+
+    private fun showUPIPayment(amount: Double) {
+        Log.d(TAG, "Opening UPI payment for amount: ₹${amount.toInt()}")
+
+        // Fetch Vyapar UPI ID from WordPress
+        lifecycleScope.launch {
+            try {
+                val repo = WooRepository(this@PaymentActivity)
+                val upiId = withContext(Dispatchers.IO) { repo.getVyaparUpiId() }
+                Log.d(TAG, "Fetched UPI ID: $upiId")
+                openUPIIntent(upiId, amount)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to fetch UPI ID, using default", e)
+                openUPIIntent("vyapar@upi", amount)
+            }
+        }
+    }
+
+    private fun openUPIIntent(upiId: String, amount: Double) {
+        val merchantName = "Natraj Super"
+        val transactionNote = "Payment for Order"
+        val upiUrl = "upi://pay?pa=$upiId&pn=$merchantName&am=$amount&cu=INR&tn=$transactionNote"
+        Log.d(TAG, "UPI URL: $upiUrl")
+
+        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(upiUrl))
+        try {
+            startActivityForResult(intent, UPI_PAYMENT_REQUEST)
+            Log.d(TAG, "UPI intent launched successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to launch UPI intent", e)
+            CustomToast.showError(this, "No UPI app found. Please install a UPI app like Google Pay or PhonePe.", Toast.LENGTH_LONG)
+        }
+    }
+
+    private fun placeOrderAfterQR() {
+        Log.d(TAG, "Placing order after QR payment...")
+
+        // Proceed with order placement logic here
+        // This can be similar to the existing placeOrder() logic, but called after QR payment confirmation
+
+        // For now, just showing a success message and finishing the activity
+        CustomToast.showSuccess(this, "Order placed successfully after QR payment!", Toast.LENGTH_LONG)
+
+        // Clear cart
+        CartManager.clear()
+
+        // Navigate to confirmation
+        val intent = Intent(this, OrderConfirmationActivity::class.java)
+        intent.putExtra("order_id", "QR-${System.currentTimeMillis()}") // Dummy order ID
+        intent.putExtra("offline_mode", true)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+        finish()
+    }
+
+    private fun openUpiPayment(cartItems: List<CartItem>, totalAmount: Double, address: Address) {
+        Log.d(TAG, "Opening UPI payment screen")
+
+        // Create intent for UPI payment activity
+        val intent = Intent(this, UpiPaymentActivity::class.java)
+        intent.putExtra("cart_items", ArrayList(cartItems))
+        intent.putExtra("total_amount", totalAmount)
+        intent.putExtra("address", address)
+        startActivityForResult(intent, UPI_PAYMENT_REQUEST)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == UPI_PAYMENT_REQUEST) {
+            // Handle UPI payment result
+            if (resultCode == RESULT_OK) {
+                // Payment successful, place order
+                placeOrderAfterQR()
+            } else {
+                // Payment failed or canceled
+                progressBar.visibility = View.GONE
+                placeOrderButton.isEnabled = true
+                CustomToast.showWarning(this, "Payment was canceled or failed", Toast.LENGTH_SHORT)
+            }
+        }
+    }
+
+    private fun showComingSoonDialog() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Coming Soon")
+            .setMessage("Online payment feature is coming soon. Proceeding with Cash on Delivery.")
+            .setPositiveButton("Continue with COD") { _, _ ->
+                // Automatically select COD and proceed
+                gatewayId = "cod"
+                paymentTitle = "Cash on Delivery"
+                Log.d(TAG, "Proceeding with COD after online payment coming soon dialog")
+
+                // Call placeOrder again with COD
+                placeOrder(paymentGroup, cartItems, totalAmount)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }

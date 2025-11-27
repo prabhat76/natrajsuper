@@ -1,4 +1,4 @@
-package com.example.natraj
+package com.example.natraj.data.model
 
 import java.io.Serializable
 
