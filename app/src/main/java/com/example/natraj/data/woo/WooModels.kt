@@ -141,7 +141,8 @@ data class FilterParams(
     val attribute: Int? = null,
     val attributeTerm: Int? = null,
     val page: Int = 1,
-    val perPage: Int = 20
+    val perPage: Int = 20,
+    val search: String? = null
 )
 
 // Update request for customer

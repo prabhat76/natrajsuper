@@ -45,8 +45,8 @@ class WooRepository(private val context: Context) {
 
     suspend fun getProducts(params: FilterParams, featured: Boolean? = null): List<Product> {
         // Create cache key
-        val cacheKey = "${params.categoryId}_${params.page}_${params.perPage}_$featured"
-        
+        val cacheKey = "${params.categoryId}_${params.page}_${params.perPage}_${params.search}_$featured"
+
         // Check cache
         productCache[cacheKey]?.let { (timestamp, products) ->
             if (System.currentTimeMillis() - timestamp < cacheTimeout) {
@@ -63,6 +63,7 @@ class WooRepository(private val context: Context) {
             maxPrice = params.maxPrice,
             attribute = params.attribute,
             attributeTerm = params.attributeTerm,
+            search = params.search,
             featured = featured
         )
         val products = items.map { mapProduct(it) }

@@ -21,6 +21,7 @@ interface WooApi {
         @Query("max_price") maxPrice: Int? = null,
         @Query("attribute") attribute: Int? = null,
         @Query("attribute_term") attributeTerm: Int? = null,
+        @Query("search") search: String? = null,
         @Query("featured") featured: Boolean? = null,
         @Query("orderby") orderBy: String? = null,
         @Query("order") order: String? = null

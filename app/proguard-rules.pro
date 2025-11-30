@@ -50,6 +50,17 @@
 -keep class com.github.barteksc.pdfviewer.** { *; }
 -keep class com.shockwave.pdfium.** { *; }
 
+# Kafka and Jackson
+-keep class org.apache.kafka.** { *; }
+-keep class com.fasterxml.jackson.** { *; }
+-dontwarn org.apache.kafka.**
+-dontwarn com.fasterxml.jackson.**
+-dontwarn java.lang.management.**
+-dontwarn javax.management.**
+-dontwarn javax.security.**
+-dontwarn org.ietf.jgss.**
+-dontwarn org.slf4j.**
+
 # Material Components
 -keep class com.google.android.material.** { *; }
 -dontwarn com.google.android.material.**

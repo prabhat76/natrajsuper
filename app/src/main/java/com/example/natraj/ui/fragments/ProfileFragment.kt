@@ -7,16 +7,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.example.natraj.AuthManager
 import com.example.natraj.LoginActivity
 import com.example.natraj.OrdersActivity
 import com.example.natraj.R
 import com.example.natraj.ui.activities.AccountDetailsActivity
-
 import com.example.natraj.ui.activities.WishlistActivity
 import com.example.natraj.util.CustomToast
-
+import com.example.natraj.AddressActivity
 
 class ProfileFragment : Fragment() {
 
@@ -25,6 +25,10 @@ class ProfileFragment : Fragment() {
     private lateinit var downloadsSection: LinearLayout
     private lateinit var wishlistSection: LinearLayout
     private lateinit var logoutSection: LinearLayout
+    private lateinit var userNameText: TextView
+    private lateinit var userEmailText: TextView
+    private lateinit var paymentSection: LinearLayout
+    private lateinit var addressSection: LinearLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,6 +42,23 @@ class ProfileFragment : Fragment() {
         downloadsSection = view.findViewById(R.id.profile_downloads_section)
         wishlistSection = view.findViewById(R.id.profile_wishlist_section)
         logoutSection = view.findViewById(R.id.profile_logout_section)
+        userNameText = view.findViewById(R.id.profile_user_name)
+        userEmailText = view.findViewById(R.id.profile_user_email)
+        paymentSection = view.findViewById(R.id.profile_payment_section)
+        addressSection = view.findViewById(R.id.profile_address_section)
+
+        // Hide payment methods UI as requested
+        paymentSection.visibility = View.GONE
+
+        // Manage Addresses click
+        addressSection.setOnClickListener {
+            if (AuthManager.isLoggedIn()) {
+                val intent = Intent(requireContext(), AddressActivity::class.java)
+                startActivity(intent)
+            } else {
+                showLoginPrompt()
+            }
+        }
 
         // Set click listeners
         accountSection.setOnClickListener {
@@ -83,7 +104,25 @@ class ProfileFragment : Fragment() {
             }
         }
 
+        // Update user info display
+        updateUserInfo()
+
         return view
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateUserInfo()
+    }
+
+    private fun updateUserInfo() {
+        if (AuthManager.isLoggedIn()) {
+            userNameText.text = AuthManager.getUserName()
+            userEmailText.text = AuthManager.getUserEmail()
+        } else {
+            userNameText.text = "Guest User"
+            userEmailText.text = "Please login to access your account"
+        }
     }
 
     private fun showLoginPrompt() {

@@ -1,4 +1,4 @@
-package com.example.natraj
+package com.example.natraj.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,6 +11,8 @@ import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.lifecycle.lifecycleScope
+import com.example.natraj.ProductDetailActivity
+import com.example.natraj.R
 import com.example.natraj.data.AppConfig
 import com.example.natraj.data.WooRepository
 import com.example.natraj.data.model.Product
@@ -35,7 +37,8 @@ class AllProductsActivity : AppCompatActivity() {
 
     private var categoryId: Int? = null
     private var categoryName: String? = null
-    
+    private var searchQuery: String? = null
+
     private enum class SortMode { DEFAULT, PRICE_LOW_HIGH, PRICE_HIGH_LOW, NAME_AZ, NEWEST }
     private var currentSort = SortMode.DEFAULT
 
@@ -45,7 +48,8 @@ class AllProductsActivity : AppCompatActivity() {
 
         categoryId = intent.getIntExtra("extra_category_id", 0).takeIf { it > 0 }
         categoryName = intent.getStringExtra("extra_category_name")
-        
+        searchQuery = intent.getStringExtra("extra_search_query")
+
         perPage = AppConfig.getProductsPerPage(this)
 
         initializeViews()
@@ -64,7 +68,11 @@ class AllProductsActivity : AppCompatActivity() {
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
-            title = categoryName ?: "All Products"
+            title = when {
+                searchQuery != null -> "Search: $searchQuery"
+                categoryName != null -> categoryName
+                else -> "All Products"
+            }
         }
         ThemeUtil.applyToolbarColor(toolbar, this)
     }
@@ -75,9 +83,14 @@ class AllProductsActivity : AppCompatActivity() {
         productsRecycler.layoutManager = GridLayoutManager(this, spanCount)
         
         adapter = GridProductAdapter(mutableListOf<Product>()) { product ->
-            val intent = Intent(this@AllProductsActivity, ProductDetailActivity::class.java)
-            intent.putExtra("product", product)
-            startActivity(intent)
+            try {
+                val intent = Intent(this@AllProductsActivity, ProductDetailActivity::class.java)
+                intent.putExtra("product", product)
+                startActivity(intent)
+            } catch (e: Exception) {
+                android.util.Log.e("AllProductsActivity", "Error opening product details", e)
+                Toast.makeText(this@AllProductsActivity, "Error opening product details", Toast.LENGTH_SHORT).show()
+            }
         }
         productsRecycler.adapter = adapter
         
@@ -106,7 +119,7 @@ class AllProductsActivity : AppCompatActivity() {
             try {
                 val repo = WooRepository(this@AllProductsActivity)
                 var products = withContext(Dispatchers.IO) {
-                    repo.getProducts(FilterParams(categoryId = categoryId, perPage = perPage, page = currentPage))
+                    repo.getProducts(FilterParams(categoryId = categoryId, perPage = perPage, page = currentPage, search = searchQuery))
                 }
                 
                 if (products.isEmpty()) {
@@ -137,7 +150,7 @@ class AllProductsActivity : AppCompatActivity() {
             try {
                 val repo = WooRepository(this@AllProductsActivity)
                 var products = withContext(Dispatchers.IO) {
-                    repo.getProducts(FilterParams(categoryId = categoryId, perPage = perPage, page = currentPage))
+                    repo.getProducts(FilterParams(categoryId = categoryId, perPage = perPage, page = currentPage, search = searchQuery))
                 }
                 
                 if (products.isEmpty()) {

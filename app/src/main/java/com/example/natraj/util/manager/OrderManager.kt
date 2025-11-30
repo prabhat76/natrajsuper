@@ -38,4 +38,9 @@ object OrderManager {
     private fun notifyListeners() {
         listeners.forEach { it() }
     }
+
+    // helper used by product UI to detect if user purchased a product before
+    fun hasPurchasedProduct(productId: Int): Boolean {
+        return orders.any { order -> order.items.any { it.product.id == productId } }
+    }
 }

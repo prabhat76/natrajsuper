@@ -101,4 +101,8 @@ object CartManager {
     fun discountAmount(): Double = items.sumOf { ((it.product.originalPrice - it.product.price).coerceAtLeast(0.0) * it.quantity).toDouble() }
 
     fun total(): Double = (subtotal() - discountAmount())
+
+    fun hasProduct(productId: Int): Boolean = items.any { it.product.id == productId }
+
+    fun getQuantity(productId: Int): Int = items.find { it.product.id == productId }?.quantity ?: 0
 }

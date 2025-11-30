@@ -15,6 +15,7 @@ import com.example.natraj.R
 import com.example.natraj.WishlistManager
 import com.example.natraj.util.CustomToast
 import com.example.natraj.data.model.Product
+import com.example.natraj.OrderManager
 
 class GridProductAdapter(
     private var products: MutableList<Product> = mutableListOf(),
@@ -37,6 +38,12 @@ class GridProductAdapter(
         val wishlistIcon: ImageView = itemView.findViewById(R.id.wishlist_icon)
         val addToCartButton: Button = itemView.findViewById(R.id.add_to_cart_button)
         val discountLayout: View = itemView.findViewById(R.id.discount_layout)
+
+        // Newly added quantity controls
+        val quantityControls: View = itemView.findViewById(R.id.quantity_controls)
+        val decreaseBtn: ImageView = itemView.findViewById(R.id.decrease_quantity_btn)
+        val increaseBtn: ImageView = itemView.findViewById(R.id.increase_quantity_btn)
+        val quantityText: TextView = itemView.findViewById(R.id.quantity_text)
 
         fun bind(product: Product) {
             productName.text = product.name
@@ -110,6 +117,60 @@ class GridProductAdapter(
                 .centerCrop()
                 .into(productImage)
 
+            // Determine cart state
+            val inCart = CartManager.hasProduct(product.id)
+            val boughtBefore = OrderManager.hasPurchasedProduct(product.id)
+
+            if (inCart) {
+                // Show quantity controls
+                addToCartButton.visibility = View.GONE
+                quantityControls.visibility = View.VISIBLE
+                val qty = CartManager.getQuantity(product.id)
+                quantityText.text = qty.toString()
+            } else {
+                addToCartButton.visibility = View.VISIBLE
+                quantityControls.visibility = View.GONE
+                addToCartButton.text = if (boughtBefore) "BUY AGAIN" else "ADD"
+            }
+
+            // Add to Cart button
+            addToCartButton.setOnClickListener {
+                if (product.inventory > 0) {
+                    CartManager.add(product, 1)
+
+                    // Switch UI to quantity controls
+                    addToCartButton.visibility = View.GONE
+                    quantityControls.visibility = View.VISIBLE
+                    quantityText.text = CartManager.getQuantity(product.id).toString()
+
+                    CustomToast.showSuccess(itemView.context, "Added to cart")
+                    onAddToCart(product)
+                } else {
+                    CustomToast.showError(itemView.context, "Product out of stock")
+                }
+            }
+
+            // Increase / decrease logic
+            increaseBtn.setOnClickListener {
+                val current = CartManager.getQuantity(product.id)
+                CartManager.updateQuantity(product, current + 1)
+                quantityText.text = CartManager.getQuantity(product.id).toString()
+            }
+
+            decreaseBtn.setOnClickListener {
+                val current = CartManager.getQuantity(product.id)
+                if (current <= 1) {
+                    // remove from cart
+                    CartManager.remove(product)
+                    quantityControls.visibility = View.GONE
+                    addToCartButton.visibility = View.VISIBLE
+                    addToCartButton.text = if (OrderManager.hasPurchasedProduct(product.id)) "BUY AGAIN" else "ADD"
+                } else {
+                    CartManager.updateQuantity(product, current - 1)
+                    quantityText.text = CartManager.getQuantity(product.id).toString()
+                }
+            }
+
             // Click listeners
             itemView.setOnClickListener {
                 onProductClick(product)
@@ -122,18 +183,6 @@ class GridProductAdapter(
                 val message = if (added) "Added to wishlist" else "Removed from wishlist"
                 CustomToast.showInfo(itemView.context, message)
                 onFavoriteClick(product)
-            }
-
-            // Add to Cart button
-            addToCartButton.setOnClickListener {
-                if (product.inventory > 0) {
-                    CartManager.add(product, 1)
-
-                    CustomToast.showSuccess(itemView.context, "Added to cart")
-                    onAddToCart(product)
-                } else {
-                    CustomToast.showError(itemView.context, "Product out of stock")
-                }
             }
         }
         

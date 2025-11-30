@@ -46,6 +46,17 @@ class BannerAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BannerViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_banner, parent, false)
+
+        // Ensure the page fills the whole ViewPager2 (fixes "Pages must fill the whole ViewPager2" crash)
+        val lp = view.layoutParams
+        if (lp == null) {
+            view.layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        } else {
+            lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+            lp.height = ViewGroup.LayoutParams.MATCH_PARENT
+            view.layoutParams = lp
+        }
+
         return BannerViewHolder(view)
     }
 

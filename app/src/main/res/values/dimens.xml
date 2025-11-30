@@ -27,4 +27,7 @@
     
     <!-- Banner height -->
     <dimen name="banner_height">180dp</dimen>
+
+    <!-- Search dropdown width used by HomeFragment ListPopupWindow -->
+    <dimen name="search_dropdown_width">300dp</dimen>
 </resources>

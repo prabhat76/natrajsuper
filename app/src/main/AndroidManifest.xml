@@ -27,8 +27,9 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <!-- Splash and main activities -->
         <activity
-            android:name=".ui.activities.SplashActivity"
+            android:name="com.example.natraj.ui.activities.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.Natraj.NoActionBar">
             <intent-filter>
@@ -38,92 +39,106 @@
         </activity>
 
         <activity
-            android:name=".ui.activities.MainActivity"
+            android:name="com.example.natraj.ui.activities.MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Natraj.NoActionBar" />
+
+        <!-- All products activity -->
+        <activity
+            android:name="com.example.natraj.ui.activities.AllProductsActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.ui.activities.MainActivity" />
+
+        <!-- Category products (belongs to ui.activities) -->
+        <activity
+            android:name="com.example.natraj.ui.activities.CategoryProductsActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.ui.activities.MainActivity" />
+
+        <!-- Product detail is in top-level package com.example.natraj -->
+        <activity
+            android:name="com.example.natraj.ProductDetailActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.ui.activities.AllProductsActivity" />
+
+        <!-- AddressActivity is declared in com.example.natraj -->
+        <activity
+            android:name="com.example.natraj.AddressActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.ui.activities.MainActivity" />
+
+        <!-- PaymentActivity is in top-level package com.example.natraj -->
+        <activity
+            android:name="com.example.natraj.PaymentActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.AddressActivity" />
+
+        <!-- Order confirmation in ui.activities -->
+        <activity
+            android:name="com.example.natraj.ui.activities.OrderConfirmationActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.ui.activities.MainActivity" />
+
+        <!-- Orders (top-level) -->
+        <activity
+            android:name="com.example.natraj.OrdersActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.ui.activities.MainActivity" />
+
+        <!-- Wishlist in ui.activities -->
+        <activity
+            android:name="com.example.natraj.ui.activities.WishlistActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.ui.activities.MainActivity" />
+
+        <!-- Account details in ui.activities -->
+        <activity
+            android:name="com.example.natraj.ui.activities.AccountDetailsActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.ui.activities.MainActivity" />
+
+        <!-- Blog pages are top-level -->
+        <activity
+            android:name="com.example.natraj.BlogActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.ui.activities.MainActivity" />
+
+        <activity
+            android:name="com.example.natraj.BlogDetailActivity"
+            android:exported="false"
+            android:parentActivityName="com.example.natraj.BlogActivity" />
+
+        <!-- Error and failure activities -->
+        <activity
+            android:name="com.example.natraj.ui.activities.ErrorActivity"
             android:exported="false"
             android:theme="@style/Theme.Natraj.NoActionBar" />
 
         <activity
-            android:name=".AllProductsActivity"
+            android:name="com.example.natraj.OrderFailureActivity"
             android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
+            android:theme="@style/Theme.Natraj.NoActionBar" />
 
+        <!-- Quick checkout -->
         <activity
-            android:name=".ui.activities.CategoryProductsActivity"
+            android:name="com.example.natraj.ui.activities.QuickCheckoutActivity"
             android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
+            android:parentActivityName="com.example.natraj.ui.activities.MainActivity" />
 
+        <!-- Auth activities (Login in top-level, Signup under ui.activities) -->
         <activity
-            android:name=".ProductDetailActivity"
-            android:exported="false"
-            android:parentActivityName=".AllProductsActivity" />
-
-        <activity
-            android:name=".AddressActivity"
-            android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
-
-        <activity
-            android:name=".PaymentActivity"
-            android:exported="false"
-            android:parentActivityName=".AddressActivity" />
-
-        <activity
-            android:name=".ui.activities.OrderConfirmationActivity"
-            android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
-
-        <activity
-            android:name=".OrdersActivity"
-            android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
-
-        <activity
-            android:name=".ui.activities.WishlistActivity"
-            android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
-
-        <activity
-            android:name=".ui.activities.AccountDetailsActivity"
-            android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
-
-        <activity
-            android:name=".BlogActivity"
-            android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
-
-        <activity
-            android:name=".BlogDetailActivity"
-            android:exported="false"
-            android:parentActivityName=".BlogActivity" />
-
-        <activity
-            android:name=".ui.activities.ErrorActivity"
+            android:name="com.example.natraj.LoginActivity"
             android:exported="false"
             android:theme="@style/Theme.Natraj.NoActionBar" />
 
         <activity
-            android:name=".OrderFailureActivity"
+            android:name="com.example.natraj.ui.activities.SignupActivity"
             android:exported="false"
             android:theme="@style/Theme.Natraj.NoActionBar" />
 
-        <activity
-            android:name=".ui.activities.QuickCheckoutActivity"
-            android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
-
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Natraj.NoActionBar" />
-
-        <activity
-            android:name=".ui.activities.SignupActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Natraj.NoActionBar" />
-
+        <!-- Kafka notification service -->
         <service
-            android:name=".util.kafka.KafkaNotificationService"
+            android:name="com.example.natraj.util.kafka.KafkaNotificationService"
             android:enabled="true"
             android:exported="false" />
 

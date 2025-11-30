@@ -56,4 +56,6 @@
     <color name="accent_yellow">#FFB300</color>
     <color name="light_gray">#E0E0E0</color>
     <color name="overlay_dark">#80000000</color>
+    <color name="nav_bar_color">#FFFFFF</color>
+    <color name="status_bar_color">#1976D2</color>
 </resources>

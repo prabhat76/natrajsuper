@@ -16,10 +16,11 @@ import com.example.natraj.BlogManager
 import com.example.natraj.CartFragment
 import com.example.natraj.CartManager
 import com.example.natraj.CategoriesFragment
-import com.example.natraj.HomeFragment
+
 import com.example.natraj.OfferManager
 import com.example.natraj.ProductManager
 import com.example.natraj.R
+import com.example.natraj.ui.fragments.HomeFragment
 import com.example.natraj.ui.fragments.ProfileFragment
 
 import com.google.android.material.bottomnavigation.BottomNavigationView

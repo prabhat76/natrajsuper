@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.natraj.R
 
 import com.example.natraj.data.WooRepository
+import com.example.natraj.data.woo.WooPrefs
 import com.example.natraj.ui.activities.MainActivity
 import com.example.natraj.ui.activities.SignupActivity
 import com.example.natraj.util.CustomToast
@@ -22,24 +23,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class LoginActivity : AppCompatActivity() {
-    
+
     private lateinit var emailInput: EditText
     private lateinit var passwordInput: EditText
     private lateinit var loginBtn: Button
     private lateinit var signupLink: TextView
     private lateinit var skipLink: TextView
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-        
+
         // Hide action bar
         supportActionBar?.hide()
-        
+
         initializeViews()
         setupClickListeners()
     }
-    
+
     private fun initializeViews() {
         emailInput = findViewById(R.id.login_email_input)
         passwordInput = findViewById(R.id.login_password_input)
@@ -47,76 +48,81 @@ class LoginActivity : AppCompatActivity() {
         signupLink = findViewById(R.id.signup_link)
         skipLink = findViewById(R.id.skip_login)
     }
-    
+
     private fun setupClickListeners() {
         loginBtn.setOnClickListener {
             val email = emailInput.text.toString().trim()
             val password = passwordInput.text.toString().trim()
-            
+
             if (validateInput(email, password)) {
                 performLogin(email)
             }
         }
-        
+
         signupLink.setOnClickListener {
             startActivity(Intent(this, SignupActivity::class.java))
         }
-        
+
         skipLink.setOnClickListener {
-            // Allow guest mode
+            // Allow guest mode - SECURITY NOTE: This bypasses authentication
+            // Consider removing this for production apps
             navigateToMain()
         }
     }
-    
+
     private fun validateInput(email: String, password: String): Boolean {
         if (email.isEmpty()) {
             emailInput.error = "Email is required"
             emailInput.requestFocus()
             return false
         }
-        
+
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             emailInput.error = "Enter a valid email"
             emailInput.requestFocus()
             return false
         }
-        
+
         if (password.isEmpty()) {
             passwordInput.error = "Password is required"
             passwordInput.requestFocus()
             return false
         }
-        
+
         if (password.length < 6) {
             passwordInput.error = "Password must be at least 6 characters"
             passwordInput.requestFocus()
             return false
         }
-        
+
         return true
     }
-    
+
     private fun performLogin(email: String) {
         // Disable button and show progress
         loginBtn.isEnabled = false
         loginBtn.text = "Logging in..."
-        
+
         lifecycleScope.launch {
             try {
                 // Check if customer exists in WooCommerce
                 val repo = WooRepository(this@LoginActivity)
-                
+
                 val customer = withContext(Dispatchers.IO) {
                     repo.getCustomerByEmail(email)
                 }
-                
+
                 if (customer != null) {
+                    // SECURITY NOTE: This implementation only checks if email exists
+                    // In production, proper password validation should be implemented
+                    // using WooCommerce authentication endpoints or JWT tokens
+
                     // Customer found - login
                     val fullName = "${customer.first_name} ${customer.last_name}".trim()
                     val displayName = fullName.ifBlank { email.substringBefore("@") }
-                    
+
                     AuthManager.login(displayName, email, "", customer.id)
-                    
+
                     // Sync account data from WooCommerce
                     try {
                         AccountSyncManager.fullSyncFromWoo(this@LoginActivity)
@@ -124,7 +130,7 @@ class LoginActivity : AppCompatActivity() {
                     } catch (syncException: Exception) {
                         Log.w("LoginActivity", "Account sync failed, but login continues", syncException)
                     }
-                    
+
                     CustomToast.showSuccess(this@LoginActivity, "Welcome back, $displayName!")
                     navigateToMain()
                 } else {
@@ -132,34 +138,42 @@ class LoginActivity : AppCompatActivity() {
                     loginBtn.isEnabled = true
                     loginBtn.text = "LOGIN"
                     CustomToast.showError(
-                        this@LoginActivity, 
+                        this@LoginActivity,
                         "Account not found. Please sign up first.",
                         Toast.LENGTH_LONG
                     )
                 }
-                
+
             } catch (e: Exception) {
                 Log.e("LoginActivity", "Login failed", e)
                 loginBtn.isEnabled = true
                 loginBtn.text = "LOGIN"
-                
-                // For development: allow local login if WooCommerce is not configured
-                val name = email.substringBefore("@")
-                AuthManager.login(name, email, "", 0)
-                
-                // Try to sync if possible (won't work for local login, but safe to call)
-                try {
-                    AccountSyncManager.fullSyncFromWoo(this@LoginActivity)
-                } catch (syncException: Exception) {
-                    Log.d("LoginActivity", "Sync not available for local login")
+
+                // Check if WooCommerce is configured
+                val prefs = WooPrefs(this@LoginActivity)
+                val isWooConfigured = !prefs.baseUrl.isNullOrBlank() &&
+                        !prefs.consumerKey.isNullOrBlank() &&
+                        !prefs.consumerSecret.isNullOrBlank()
+
+                if (isWooConfigured) {
+                    // WooCommerce is configured but login failed - show error
+                    CustomToast.showError(
+                        this@LoginActivity,
+                        "Login failed. Please check your credentials and try again.",
+                        Toast.LENGTH_LONG
+                    )
+                } else {
+                    // WooCommerce not configured - show configuration message
+                    CustomToast.showError(
+                        this@LoginActivity,
+                        "WordPress/WooCommerce not configured. Please contact support.",
+                        Toast.LENGTH_LONG
+                    )
                 }
-                
-                CustomToast.showWarning(this@LoginActivity, "Logged in locally (WooCommerce unavailable)")
-                navigateToMain()
             }
         }
     }
-    
+
     private fun navigateToMain() {
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
