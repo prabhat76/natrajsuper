@@ -16,6 +16,7 @@ import com.example.natraj.WishlistManager
 import com.example.natraj.util.CustomToast
 import com.example.natraj.data.model.Product
 import com.example.natraj.OrderManager
+import com.example.natraj.ui.activities.MainActivity
 
 class GridProductAdapter(
     private var products: MutableList<Product> = mutableListOf(),
@@ -145,6 +146,12 @@ class GridProductAdapter(
 
                     CustomToast.showSuccess(itemView.context, "Added to cart")
                     onAddToCart(product)
+                    
+                    // Navigate to cart
+                    val intent = Intent(itemView.context, MainActivity::class.java)
+                    intent.putExtra("open_cart", true)
+                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    itemView.context.startActivity(intent)
                 } else {
                     CustomToast.showError(itemView.context, "Product out of stock")
                 }

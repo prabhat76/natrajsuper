@@ -43,15 +43,11 @@ class WpRepository(private val context: Context) {
     }
 
     suspend fun getBanners(): List<Banner> {
-        // FIX 4: Check if your getMedia interface actually has an 'embed' parameter.
-        // If not, remove 'embed = true'. I kept it here assuming you might have it, but if it errors, delete "embed = true"
         val apiMediaItems = api.getMedia(perPage = AppConfig.getMediaPerPage(context), search = null)
 
         val bannerItems = apiMediaItems.filter { item ->
-            // FIX 5: 'item.title.rendered' is a String. It does not have a .text property.
             val title = item.title.rendered.lowercase()
             val altText = item.altText?.lowercase() ?: ""
-            // FIX 6: 'item.caption.rendered' is a String. It does not have a .text property.
             val caption = item.caption?.rendered?.lowercase() ?: ""
 
             title.contains("banner") ||
@@ -88,7 +84,8 @@ class WpRepository(private val context: Context) {
                 )
             }
         }
-        return getFallbackBanners()
+        // Strictly return empty, no hardcoded fallback
+        return emptyList()
     }
 
     private fun extractBannerSubtitle(rawTitle: String, altText: String, caption: String): String {
@@ -127,35 +124,6 @@ class WpRepository(private val context: Context) {
             }
         }
         return item.sourceUrl
-    }
-
-    private fun getFallbackBanners(): List<Banner> {
-        return listOf(
-            Banner(
-                id = 1,
-                title = "",
-                subtitle = "",
-                description = "",
-                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/elementor/thumbs/banner-r2sg0udwg8jryfmhpu6niloeicuect6rsguv9ef8cw.png",
-                ctaText = "Shop Now"
-            ),
-            Banner(
-                id = 2,
-                title = "",
-                subtitle = "",
-                description = "",
-                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/elementor/thumbs/banner-1-r2sg13sackwn6j8u6y8x7jb0g7k2hs835rdq261amo.png",
-                ctaText = "Shop Now"
-            ),
-            Banner(
-                id = 3,
-                title = "",
-                subtitle = "",
-                description = "",
-                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/elementor/thumbs/banner-2-r2sg1d6o8x9iemv6o2b6wgxme29qmr9ej1wkuxncwg.png",
-                ctaText = "Shop Now"
-            )
-        )
     }
 
     suspend fun getOfferBanners(): List<Banner> {

@@ -103,10 +103,7 @@ class MainActivity : AppCompatActivity() {
 
         // Setup cart badge listener
         val badge = bottomNav.getOrCreateBadge(R.id.nav_cart)
-        badge.isVisible = false // Hide the badge completely
         
-        // Comment out cart badge functionality
-        /*
         cartBadgeCallback = {
             try {
                 val count = CartManager.getItemCount()
@@ -122,7 +119,6 @@ class MainActivity : AppCompatActivity() {
         }
         CartManager.registerListener(cartBadgeCallback!!)
         cartBadgeCallback?.invoke()
-        */
     }
 
     override fun onDestroy() {

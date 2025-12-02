@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:background="@color/white">
 
-    <!-- Flipkart Header -->
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,7 +23,7 @@
             android:id="@+id/back_button"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@android:drawable/ic_menu_revert"
+            android:src="@drawable/ic_back"
             android:tint="@color/white"
             android:layout_marginEnd="16dp"
             android:background="?attr/selectableItemBackgroundBorderless" />
@@ -32,24 +32,46 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Natraj"
+            android:text="Product"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
 
         <ImageView
+            android:id="@+id/header_search"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_search"
             android:tint="@color/white"
-            android:layout_marginEnd="16dp" />
+            android:layout_marginEnd="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_cart"
-            android:tint="@color/white" />
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/header_cart_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_cart"
+                android:tint="@color/white"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/header_cart_badge"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="end|top"
+                android:background="@drawable/bg_badge_red"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:gravity="center"
+                android:visibility="gone"
+                android:text="0"
+                android:padding="2dp" />
+        </FrameLayout>
     </LinearLayout>
 
     <ScrollView

@@ -7,11 +7,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ArrayAdapter
+import android.widget.ListPopupWindow
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -45,10 +49,7 @@ import com.example.natraj.ProductDetailActivity
 import com.example.natraj.SimpleCategoryAdapter
 import com.example.natraj.ui.activities.CategoryProductsActivity
 import com.example.natraj.ProductManager
-import android.widget.ArrayAdapter
-import android.widget.ListPopupWindow
-import android.widget.BaseAdapter
-
+import com.example.natraj.data.WpRepository
 
 class HomeFragment : Fragment() {
 
@@ -69,15 +70,17 @@ class HomeFragment : Fragment() {
     private lateinit var viewAllBlogBtn: TextView
     private lateinit var viewAllCategoriesBtn: TextView
 
-    // Recent searches
     private lateinit var recentSearchesRecycler: RecyclerView
     private lateinit var recentSearchesContainer: View
     private lateinit var prefs: SharedPreferences
     private val PREFS_NAME = "natraj_prefs"
     private val KEY_RECENT_SEARCHES = "recent_searches"
 
+    // Popup for showing recent searches
     private var recentSearchesPopup: ListPopupWindow? = null
-    private var recentSearchesDropdownAdapter: ArrayAdapter<String>? = null
+
+    private lateinit var emptyStateStrip: TextView
+    private lateinit var offersComingSoon: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -88,18 +91,16 @@ class HomeFragment : Fragment() {
         initializeViews(view)
         prefs = requireContext().getSharedPreferences(PREFS_NAME, 0)
 
-        // Initialize ProductManager (loads fallback or Woo products)
         ProductManager.initialize(requireContext())
 
         setupSearchBar()
+        setupCartIcon()
         setupBanners()
         setupCategories()
         setupOffers()
         setupRecommendedProducts()
         setupBlog()
         setupClickListeners()
-
-        loadRecentSearches()
 
         return view
     }
@@ -122,24 +123,34 @@ class HomeFragment : Fragment() {
 
         recentSearchesRecycler = view.findViewById(R.id.recent_searches_recycler)
         recentSearchesContainer = view.findViewById(R.id.recent_searches_container)
+        emptyStateStrip = view.findViewById(R.id.empty_state_strip)
+        offersComingSoon = view.findViewById(R.id.offers_coming_soon)
     }
 
     private fun setupSearchBar() {
-        // Search on icon click
+        // Show dropdown when search gains focus
+        searchBar.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) showRecentSearchesDropdown() else dismissRecentSearchesDropdown()
+        }
+
+        // Also show when user taps the field
+        searchBar.setOnClickListener { showRecentSearchesDropdown() }
+
         searchIcon.setOnClickListener {
             val query = searchBar.text.toString().trim()
             if (query.isNotBlank()) {
+                saveRecentSearch(query)
                 onSearchQuery(query)
             } else {
                 showToast("Please enter search text")
             }
         }
 
-        // Text search on enter key
         searchBar.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 val query = searchBar.text.toString().trim()
                 if (query.isNotBlank()) {
+                    saveRecentSearch(query)
                     onSearchQuery(query)
                 }
                 true
@@ -147,564 +158,193 @@ class HomeFragment : Fragment() {
                 false
             }
         }
-
-        // Show dropdown of recent searches when tapping the search bar
-        searchBar.setOnClickListener {
-            // show dropdown instead of toast
-            val recent = readRecentSearchList()
-            if (recent.isNotEmpty()) {
-                showRecentSearchesPopup(recent)
-            } else {
-                showToast(getString(R.string.opening_search))
-            }
-        }
-
-        // Filter suggestions as user types
-        searchBar.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val text = s?.toString() ?: ""
-                // update popup list filter
-                recentSearchesDropdownAdapter?.filter?.filter(text)
-                if (!text.isNullOrEmpty() && (recentSearchesPopup?.isShowing != true)) {
-                    // show popup with filtered results if there are any
-                    val recent = readRecentSearchList()
-                    if (recent.isNotEmpty()) showRecentSearchesPopup(recent)
-                }
-            }
-            override fun afterTextChanged(s: android.text.Editable?) {}
-        })
-
-        // Hide popup when focus is lost
-        searchBar.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                recentSearchesPopup?.dismiss()
-            }
-        }
     }
 
-    // Helper: read persisted recent searches robustly (same logic as loadRecentSearches)
-    private fun readRecentSearchList(): List<String> {
-        val raw = try { prefs.all[KEY_RECENT_SEARCHES] } catch (e: Exception) { null }
-        return when (raw) {
-            null -> emptyList()
-            is String -> if (raw.isBlank()) emptyList() else raw.split("||")
-            is Set<*> -> raw.filterIsInstance<String>().toList()
-            is Collection<*> -> raw.filterIsInstance<String>().toList()
-            else -> try { val asString = raw.toString(); if (asString.isBlank()) emptyList() else asString.split("||") } catch (e: Exception) { emptyList() }
+    private fun showRecentSearchesDropdown() {
+        val recent = getRecentSearches()
+        if (recent.isEmpty()) {
+            dismissRecentSearchesDropdown()
+            return
         }
+        val popup = recentSearchesPopup ?: ListPopupWindow(requireContext()).also { recentSearchesPopup = it }
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, recent)
+        popup.setAdapter(adapter)
+        popup.anchorView = searchBar
+        popup.isModal = true
+        popup.setOnItemClickListener { _, _, position, _ ->
+            val selected = recent[position]
+            searchBar.setText(selected)
+            searchBar.setSelection(selected.length)
+            dismissRecentSearchesDropdown()
+            saveRecentSearch(selected)
+            onSearchQuery(selected)
+        }
+        popup.show()
     }
 
-    private fun showRecentSearchesPopup(list: List<String>) {
-        // Build data with footer marker
-        val data = list.toMutableList()
-        val FOOTER_MARKER = "__CLEAR_FOOTER__"
-        data.add(FOOTER_MARKER)
+    private fun dismissRecentSearchesDropdown() {
+        recentSearchesPopup?.dismiss()
+    }
 
-        // Create custom adapter
-        val adapter = object : BaseAdapter() {
-            override fun getCount(): Int = data.size
-            override fun getItem(position: Int): Any = data[position]
-            override fun getItemId(position: Int): Long = position.toLong()
+    private fun saveRecentSearch(query: String) {
+        // Use StringSet to avoid ClassCastException
+        val set = prefs.getStringSet(KEY_RECENT_SEARCHES, emptySet())?.toMutableSet() ?: mutableSetOf()
+        // Maintain uniqueness and most-recent-first with max size 3
+        // Remove existing to re-add on top
+        set.remove(query)
+        set.add(query)
+        // If over 3, trim by oldest — convert to list to control order
+        val list = set.toMutableList()
+        // We can't rely on set order; rebuild from prefs stored list when available
+        val current = getRecentSearches().toMutableList()
+        current.remove(query)
+        current.add(0, query)
+        val trimmed = current.take(3)
+        prefs.edit().putStringSet(KEY_RECENT_SEARCHES, trimmed.toSet()).apply()
+    }
 
-            override fun getViewTypeCount(): Int = 2
-            override fun getItemViewType(position: Int): Int = if (data[position] == FOOTER_MARKER) 1 else 0
+    private fun getRecentSearches(): List<String> {
+        // Safely read as StringSet; never cast to String
+        val set = prefs.getStringSet(KEY_RECENT_SEARCHES, emptySet())
+        // Show most recent first; we stored in order via saveRecentSearch
+        return set?.toList() ?: emptyList()
+    }
 
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-                val inflater = LayoutInflater.from(requireContext())
-                return if (getItemViewType(position) == 0) {
-                    val v = convertView ?: inflater.inflate(R.layout.item_search_suggestion, parent, false)
-                    val icon = v.findViewById<ImageView>(R.id.suggestion_icon)
-                    val txt = v.findViewById<TextView>(R.id.suggestion_text)
-                    txt.text = data[position]
-                    v
-                } else {
-                    val v = convertView ?: inflater.inflate(R.layout.item_search_footer, parent, false)
-                    val footer = v.findViewById<TextView>(R.id.footer_text)
-                    footer.setOnClickListener {
-                        // Clear stored searches
-                        prefs.edit().remove(KEY_RECENT_SEARCHES).apply()
-                        recentSearchesPopup?.dismiss()
-                        loadRecentSearches()
-                    }
-                    v
-                }
+    private fun setupCartIcon() {
+        updateCartBadge()
+
+        cartIcon.setOnClickListener {
+            // Navigate to cart fragment within the same MainActivity
+            (activity as? MainActivity)?.let { mainActivity ->
+                mainActivity.supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, CartFragment())
+                    .addToBackStack(null)
+                    .commit()
+
+                // Update bottom navigation to show cart tab as selected
+                mainActivity.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_navigation)
+                    ?.selectedItemId = R.id.nav_cart
             }
         }
 
-        if (recentSearchesPopup == null) {
-            recentSearchesPopup = ListPopupWindow(requireContext())
-            recentSearchesPopup?.anchorView = searchBar
-            recentSearchesPopup?.setAdapter(adapter) // pass adapter directly
-            recentSearchesPopup?.width = resources.getDimensionPixelSize(com.example.natraj.R.dimen.search_dropdown_width)
-            recentSearchesPopup?.isModal = true
-            recentSearchesPopup?.setOnItemClickListener { _, view, position, _ ->
-                val item = data[position]
-                if (item == FOOTER_MARKER) return@setOnItemClickListener
-                searchBar.setText(item)
-                searchBar.setSelection(item.length)
-                recentSearchesPopup?.dismiss()
-                onSearchQuery(item)
-            }
-            recentSearchesPopup?.setBackgroundDrawable(resources.getDrawable(R.drawable.bg_search_popup, null))
+        CartManager.registerListener { updateCartBadge() }
+    }
+
+    private fun updateCartBadge() {
+        val count = CartManager.getItemCount()
+        if (count > 0) {
+            cartBadge.visibility = View.VISIBLE
+            cartBadge.text = count.toString() // Show exact count, not hardcoded "3"
         } else {
-            recentSearchesPopup?.setAdapter(adapter)
-        }
-
-        try {
-            recentSearchesPopup?.show()
-        } catch (e: Exception) {
-            android.util.Log.w("HomeFragment", "Failed to show recent searches popup", e)
+            cartBadge.visibility = View.GONE
         }
     }
 
     private fun onSearchQuery(query: String) {
-        // Save recent searches (keep last 3)
+        val intent = Intent(requireContext(), AllProductsActivity::class.java)
+        intent.putExtra("search_query", query)
         try {
-            saveRecentSearch(query)
-        } catch (e: Exception) {
-            android.util.Log.w("HomeFragment", "Failed saving recent search", e)
-        }
-
-        // Try local search (best-effort) but don't block navigation on failure
-        try {
-            ProductManager.searchProducts(query)
-        } catch (e: Exception) {
-            android.util.Log.w("HomeFragment", "Local search failed (non-fatal)", e)
-        }
-
-        if (!isAdded) {
-            android.util.Log.e("HomeFragment", "Fragment not added to activity; cannot start AllProductsActivity")
-            showToast("Error performing search: fragment not attached")
-            return
-        }
-
-        try {
-            val intent = Intent(requireActivity(), AllProductsActivity::class.java)
-            intent.putExtra("extra_search_query", query)
-
-            // Defensive: ensure there's an activity to handle this intent
-            val pm = requireActivity().packageManager
-            val resolveInfo = intent.resolveActivity(pm)
-            if (resolveInfo == null) {
-                android.util.Log.e("HomeFragment", "No activity found to handle AllProductsActivity intent: $intent")
-                showToast("Cannot perform search: target activity not available")
-                return
-            }
-
             startActivity(intent)
         } catch (e: Exception) {
-            android.util.Log.e("HomeFragment", "Failed to start AllProductsActivity", e)
-            val msg = e.message ?: "unknown"
-            showToast("Error performing search: $msg")
-
-            // Show detailed dialog to help debugging on device
-            try {
-                val full = android.util.Log.getStackTraceString(e)
-                val short = if (full.length > 2000) full.substring(0, 2000) + "..." else full
-                if (isAdded) {
-                    androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                        .setTitle("Search Error")
-                        .setMessage(short)
-                        .setPositiveButton("OK", null)
-                        .show()
-                }
-            } catch (ex: Exception) {
-                // ignore dialog failures
-            }
-        }
-    }
-
-    private fun saveRecentSearch(query: String) {
-        try {
-            // Remove any legacy value (could be a Set<String>) before saving as a single string
-            prefs.edit().remove(KEY_RECENT_SEARCHES).apply()
-
-            val existing = try { prefs.getString(KEY_RECENT_SEARCHES, "") ?: "" } catch (e: ClassCastException) { "" }
-            val list = if (existing.isBlank()) mutableListOf<String>() else existing.split("||").toMutableList()
-            list.remove(query)
-            list.add(0, query)
-            val trimmed = list.take(3)
-            prefs.edit().putString(KEY_RECENT_SEARCHES, trimmed.joinToString("||")).apply()
-
-            // Update dropdown contents if visible
-            val recent = readRecentSearchList()
-            recentSearchesDropdownAdapter?.clear()
-            recentSearchesDropdownAdapter?.addAll(recent)
-            if (recentSearchesPopup?.isShowing == true && recentSearchesDropdownAdapter?.count ?: 0 <= 0) {
-                recentSearchesPopup?.dismiss()
-            }
-
-            loadRecentSearches()
-        } catch (e: Exception) {
-            android.util.Log.e("HomeFragment", "Failed to save recent search", e)
-        }
-    }
-
-    private fun loadRecentSearches() {
-        // Read raw stored value to robustly handle legacy types (String or Set<String>)
-        val raw = try {
-            prefs.all[KEY_RECENT_SEARCHES]
-        } catch (e: Exception) {
-            android.util.Log.w("HomeFragment", "Failed to access prefs.all", e)
-            null
-        }
-
-        val list: List<String> = when (raw) {
-            null -> emptyList()
-            is String -> if (raw.isBlank()) emptyList() else raw.split("||")
-            is Set<*> -> raw.filterIsInstance<String>().toList()
-            is Collection<*> -> raw.filterIsInstance<String>().toList()
-            else -> {
-                // Last resort: attempt to coerce to String then split
-                try {
-                    val asString = raw.toString()
-                    if (asString.isBlank()) emptyList() else asString.split("||")
-                } catch (e: Exception) {
-                    android.util.Log.w("HomeFragment", "Unexpected recent searches type: ${raw?.javaClass}", e)
-                    emptyList()
-                }
-            }
-        }
-
-        if (list.isEmpty()) {
-            recentSearchesContainer.visibility = View.GONE
-            recentSearchesRecycler.adapter = null
-            return
-        }
-
-        recentSearchesContainer.visibility = View.VISIBLE
-        recentSearchesRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        recentSearchesRecycler.adapter = RecentSearchesAdapter(list) { selectedQuery ->
-            searchBar.setText(selectedQuery)
-            onSearchQuery(selectedQuery)
-        }
-    }
-
-    // Small adapter for recent searches
-    private class RecentSearchesAdapter(
-        private val items: List<String>,
-        private val onClick: (String) -> Unit
-    ) : RecyclerView.Adapter<RecentSearchesAdapter.VH>() {
-
-        inner class VH(val view: View) : RecyclerView.ViewHolder(view) {
-            val text: TextView = view.findViewById(android.R.id.text1)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-            val tv = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_1, parent, false)
-            val lp = tv.layoutParams
-            lp.width = ViewGroup.LayoutParams.WRAP_CONTENT
-            tv.layoutParams = lp
-            (tv as TextView).setPadding(24, 12, 24, 12)
-            tv.setBackgroundResource(com.example.natraj.R.drawable.bg_button_outline)
-            return VH(tv)
-        }
-
-        override fun onBindViewHolder(holder: VH, position: Int) {
-            val value = items[position]
-            holder.text.text = value
-            holder.itemView.setOnClickListener { onClick(value) }
-        }
-
-        override fun getItemCount(): Int = items.size
-    }
-
-    private fun searchProducts(query: String) {
-        // helper used in some flows; keep behaviour consistent with onSearchQuery
-        val ctx = context
-        if (ctx == null) {
-            android.util.Log.e("HomeFragment", "searchProducts: context is null")
-            showToast("Error performing search: context unavailable")
-            return
-        }
-
-        try {
-            val intent = Intent(requireActivity(), AllProductsActivity::class.java)
-            intent.putExtra("extra_search_query", query)
-            startActivity(intent)
-        } catch (e: Exception) {
-            android.util.Log.e("HomeFragment", "searchProducts failed to start AllProductsActivity", e)
-            val msg = e.message ?: "unknown"
-            showToast("Error performing search: $msg")
+            // Avoid crash if activity missing; show feedback
+            showToast("Search results screen is not available")
         }
     }
 
     private fun setupBanners() {
-        viewLifecycleOwner.lifecycleScope.launch {
+        lifecycleScope.launch {
             try {
-                val repo = com.example.natraj.data.WpRepository(requireContext())
-                val banners = withContext(Dispatchers.IO) { repo.getBanners() }
-
+                val repository = WpRepository(requireContext())
+                val banners = withContext(Dispatchers.IO) { repository.getBanners() }
                 if (banners.isNotEmpty()) {
-                    bannerViewPager.adapter = BannerAdapter(banners) { banner ->
-                        navigateToProducts()
-                    }
-                    android.util.Log.d("HomeFragment", "Loaded ${banners.size} banners from WordPress")
+                    bannerViewPager.adapter = BannerAdapter(banners)
+                    emptyStateStrip.visibility = View.GONE
                 } else {
-                    android.util.Log.w("HomeFragment", "No banners found in WordPress")
-                    bannerViewPager.visibility = View.GONE
+                    bannerViewPager.adapter = BannerAdapter(emptyList())
+                    emptyStateStrip.visibility = View.VISIBLE
                 }
             } catch (e: Exception) {
-                android.util.Log.e("HomeFragment", "Banner fetch failed: ${e.message}", e)
-                bannerViewPager.visibility = View.GONE
+                bannerViewPager.adapter = BannerAdapter(emptyList())
+                emptyStateStrip.visibility = View.VISIBLE
             }
         }
     }
 
     private fun setupCategories() {
-        // Horizontal simple list
         categoriesRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        categoriesRecycler.setItemViewCacheSize(20)
-
-        val prefs = WooPrefs(requireContext())
-        val baseUrl = prefs.baseUrl
-        val ck = prefs.consumerKey
-        val cs = prefs.consumerSecret
-
-        // Debug logging
-        android.util.Log.d("HomeFragment", "DEBUG_CREDENTIALS: baseUrl=$baseUrl, ck=${ck?.take(5)}..., cs=${cs?.take(5)}...")
-
-        val canUseWoo = !baseUrl.isNullOrBlank() && !ck.isNullOrBlank() && !cs.isNullOrBlank()
-
-        if (canUseWoo) {
-            android.util.Log.d("HomeFragment", "Credentials found, fetching categories from Woo...")
-            // Fetch from WooCommerce
-            viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    val repo = WooRepository(requireContext())
-                    val list = withContext(Dispatchers.IO) {
-                        android.util.Log.d("HomeFragment", "Calling repo.getCategories()...")
-                        repo.getCategories()
-                    }
-                    android.util.Log.d("HomeFragment", "Categories fetched: ${list.size} categories")
-                    val allCategory = Category(0, "All", imageUrl = "", hasSpecialOffer = false)
-                    val categories = listOf(allCategory) + list
-                    categoriesRecycler.adapter = SimpleCategoryAdapter(categories) { category ->
-                        // Navigate to the dedicated CategoryProductsActivity with proper extras
-                        val intent = Intent(requireContext(), CategoryProductsActivity::class.java)
-                        intent.putExtra("category_id", category.id)
-                        intent.putExtra("category_name", category.name)
-                        startActivity(intent)
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("HomeFragment", "Woo categories failed: ${e.message}", e)
-                    showToast("Failed to load categories: ${e.message}")
-                }
-            }
-        } else {
-            android.util.Log.w("HomeFragment", "Credentials NOT found: baseUrl=$baseUrl, ck=$ck, cs=$cs")
-            showToast("Configure WordPress settings to load categories")
+        val categories = listOf(
+            Category(1, "Tractors", 0, "https://via.placeholder.com/150x150/1976D2/FFFFFF?text=Tractors"),
+            Category(2, "Implements", 0, "https://via.placeholder.com/150x150/2196F3/FFFFFF?text=Implements"),
+            Category(3, "Sprayers", 0, "https://via.placeholder.com/150x150/42A5F5/FFFFFF?text=Sprayers"),
+            Category(4, "Harvesters", 0, "https://via.placeholder.com/150x150/1565C0/FFFFFF?text=Harvesters")
+        )
+        categoriesRecycler.adapter = SimpleCategoryAdapter(categories) { category ->
+            val intent = Intent(requireContext(), CategoryProductsActivity::class.java)
+            intent.putExtra("category_id", category.id)
+            intent.putExtra("category_name", category.name)
+            startActivity(intent)
         }
     }
 
     private fun setupOffers() {
         offersRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        offersRecycler.setItemViewCacheSize(10)
-
-        // Use local offers
         val offers = OfferManager.getAllOffers()
-        if (offers.isEmpty()) {
-            // Show coming soon message
-            offersRecycler.visibility = View.GONE
-            view?.findViewById<TextView>(R.id.offers_coming_soon)?.visibility = View.VISIBLE
-            android.util.Log.w("HomeFragment", "No offers available, showing coming soon")
-        } else {
-            offersRecycler.adapter = OfferAdapter(offers) { offer ->
-                val intent = Intent(requireContext(), AllProductsActivity::class.java)
+        offersRecycler.adapter = OfferAdapter(offers) { offer ->
+            val intent = Intent(requireContext(), AllProductsActivity::class.java)
+            intent.putExtra("offer_id", offer.id)
+            try {
                 startActivity(intent)
+            } catch (e: Exception) {
+                showToast("Offers screen is not available")
             }
-            android.util.Log.d("HomeFragment", "Loaded ${offers.size} local offers")
         }
+        offersComingSoon.visibility = if (offers.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun setupRecommendedProducts() {
-        val prefs = com.example.natraj.data.woo.WooPrefs(requireContext())
-        val canUseWoo = !prefs.baseUrl.isNullOrBlank() && !prefs.consumerKey.isNullOrBlank() && !prefs.consumerSecret.isNullOrBlank()
-
-        if (canUseWoo) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    val repo = com.example.natraj.data.WooRepository(requireContext())
-                    val products = withContext(Dispatchers.IO) {
-                        repo.getProducts(com.example.natraj.data.woo.FilterParams(perPage = AppConfig.getBlogPostsLimit(requireContext())))
-                    }
-                    if (products.isEmpty()) return@launch
-                    setupRecommendedRecyclerView(products)
-                } catch (e: Exception) {
-                    android.util.Log.e("HomeFragment", "Woo recommended failed", e)
-                }
-            }
-        } else {
-            showToast("Configure WordPress settings to load products")
-        }
-    }
-
-    private fun setupRecommendedRecyclerView(products: List<Product>) {
-        // Use grid layout for recommended products
         recommendedProductsRecycler.layoutManager = GridLayoutManager(requireContext(), 2)
-
-        // Enable smooth scrolling optimizations
-        recommendedProductsRecycler.isNestedScrollingEnabled = false
-
-        recommendedProductsRecycler.adapter = GridProductAdapter(
-            products.toMutableList(),
-            onProductClick = { product ->
-                try {
-                    val intent = Intent(requireContext(), ProductDetailActivity::class.java)
-                    intent.putExtra("product", product)
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    showToast("Error opening product details")
-                }
-            }
-        )
-
-        android.util.Log.d("HomeFragment", "Recommended products adapter set with ${products.size} items")
-    }
-
-    private fun setupBlog() {
-        blogRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        blogRecycler.setItemViewCacheSize(10)
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val repo = com.example.natraj.data.WpRepository(requireContext())
-                val posts = withContext(Dispatchers.IO) { repo.getRecentPosts(5) }
-                val adapter = BlogAdapter { post ->
-                    val intent = Intent(requireContext(), BlogDetailActivity::class.java)
-                    intent.putExtra("blog_post", post)
-                    startActivity(intent)
-                }
-                adapter.submitList(posts)
-                blogRecycler.adapter = adapter
-            } catch (e: Exception) {
-                android.util.Log.e("HomeFragment", "Blog fetch failed", e)
-            }
-        }
-    }
-
-    private fun setupClickListeners() {
-        whatsappOrderBtn.setOnClickListener { openWhatsApp() }
-
-        cartIcon.setOnClickListener {
-            // Navigate to cart fragment
-            (activity as? MainActivity)?.let { it.switchFragment(CartFragment()) }
-        }
-
-        viewAllCategoriesBtn.setOnClickListener {
-            android.util.Log.d("HomeFragment", "View All Categories clicked!")
-            try {
-                (activity as? MainActivity)?.switchToCategories()
-            } catch (e: Exception) {
-                android.util.Log.e("HomeFragment", "Error switching to categories", e)
-                showToast("Error: ${e.message}")
-            }
-        }
-
-        viewAllOffersBtn.setOnClickListener {
-            try {
-                val intent = Intent(requireContext(), AllProductsActivity::class.java)
-                startActivity(intent)
-            } catch (e: Exception) {
-                android.util.Log.e("HomeFragment", "Error opening AllProductsActivity for offers", e)
-                showToast("Error: ${e.message}")
-            }
-        }
-
-        viewAllRecommendedBtn.setOnClickListener {
-            android.util.Log.d("HomeFragment", "View All Recommended clicked!")
-            try {
-                val intent = Intent(requireContext(), AllProductsActivity::class.java)
-                startActivity(intent)
-            } catch (e: Exception) {
-                android.util.Log.e("HomeFragment", "Error opening AllProductsActivity", e)
-                showToast("Error: ${e.message}")
-            }
-        }
-
-        viewAllBlogBtn.setOnClickListener {
-            // Open blog page in BlogActivity
-            try {
-                val intent = Intent(requireContext(), BlogActivity::class.java)
-                intent.putExtra("url", "https://www.natrajsuper.com/blog/")
-                startActivity(intent)
-            } catch (e: Exception) {
-                showToast("Could not open blog")
-            }
-        }
-
-        searchBar.setOnClickListener {
-            showToast("Opening search")
-        }
-    }
-
-    private fun openWhatsApp() {
-        try {
-            val phoneNumber = AppConfig.getWhatsAppNumber(requireContext()) // Dynamic WhatsApp number
-            val message = "Hi! I'm interested in your Diwali offers. Please share more details."
-            val encodedMessage = Uri.encode(message)
-            val whatsappUri = "https://wa.me/917851979226?text=$encodedMessage"
-
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(whatsappUri))
-            startActivity(intent)
-        } catch (e: Exception) {
-            showToast("WhatsApp not installed")
-        }
-    }
-
-    private fun updateCartBadge() {
-        val count = CartManager.getItemCount()
-        cartBadge.text = count.toString()
-    }
-
-    private fun showToast(message: String) {
-        if (isAdded && context != null) {
-            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun navigateToProducts() {
-        try {
-            val intent = Intent(requireContext(), AllProductsActivity::class.java)
-            startActivity(intent)
-        } catch (e: Exception) {
-            CustomToast.showError(requireContext(), "Error opening products")
-        }
-    }
-
-    private fun fetchProductsByWooCategory(categoryId: Int?, label: String) {
-        val prefs = com.example.natraj.data.woo.WooPrefs(requireContext())
-        if (prefs.baseUrl.isNullOrBlank()) return
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val repo = com.example.natraj.data.WooRepository(requireContext())
-                val products = withContext(Dispatchers.IO) {
-                    repo.getProducts(com.example.natraj.data.woo.FilterParams(categoryId = categoryId, perPage = AppConfig.getProductsPerPage(requireContext())))
-                }
-                updateProductsRecycler(products)
-                showToast("Showing products in $label")
-            } catch (e: Exception) {
-                android.util.Log.e("HomeFragment", "Woo products failed", e)
-            }
-        }
-    }
-
-    private fun updateProductsRecycler(products: List<Product>) {
-        productsRecycler.adapter = GridProductAdapter(
-            products.toMutableList(),
+        val products = ProductManager.getAllProducts().take(6)
+        recommendedProductsRecycler.adapter = GridProductAdapter(products.toMutableList(),
             onProductClick = { product ->
                 val intent = Intent(requireContext(), ProductDetailActivity::class.java)
                 intent.putExtra("product", product)
                 startActivity(intent)
+            },
+            onAddToCart = { product ->
+                CartManager.add(product, 1)
             }
         )
     }
 
+    private fun setupBlog() {
+        blogRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        blogRecycler.adapter = BlogAdapter { blog ->
+            val intent = Intent(requireContext(), BlogDetailActivity::class.java)
+            intent.putExtra("blog_id", blog.id)
+            startActivity(intent)
+        }
+    }
+
+    private fun setupClickListeners() {
+        whatsappOrderBtn.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = Uri.parse("https://wa.me/919876543210?text=Hello, I want to place an order")
+            startActivity(intent)
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateCartBadge()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
-        try {
-            recentSearchesPopup?.dismiss()
-        } catch (_: Exception) {}
+        CartManager.unregisterListener { updateCartBadge() }
+        dismissRecentSearchesDropdown()
     }
 }

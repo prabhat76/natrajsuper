@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
+import androidx.core.view.isVisible
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.example.natraj.data.model.Product
@@ -39,6 +40,9 @@ class ProductDetailActivity : AppCompatActivity() {
         }
     }
 
+    private lateinit var headerCartIcon: ImageView
+    private lateinit var headerCartBadge: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_product_detail)
@@ -61,14 +65,28 @@ class ProductDetailActivity : AppCompatActivity() {
         val wishlistBtn = findViewById<ImageView>(R.id.detail_wishlist_btn)
         val specsContainer = findViewById<LinearLayout>(R.id.detail_specs_container)
         val backButton = findViewById<ImageView>(R.id.back_button)
+        val headerSearch = findViewById<ImageView>(R.id.header_search)
+        headerCartIcon = findViewById(R.id.header_cart_icon)
+        headerCartBadge = findViewById(R.id.header_cart_badge)
 
         // Store references for slideshow
         this.carousel = carousel
         this.dotIndicator = dotIndicator
 
-        backButton.setOnClickListener {
-            // Navigate back to MainActivity with clear task stack
-            navigateBackToMain()
+        backButton.setOnClickListener { finish() }
+
+        headerSearch.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("open_search", true)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            startActivity(intent)
+        }
+
+        headerCartIcon.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("open_tab", "cart")
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            startActivity(intent)
         }
 
         // Setup wishlist button
@@ -246,6 +264,7 @@ class ProductDetailActivity : AppCompatActivity() {
         if (carousel.adapter != null && carousel.adapter?.itemCount ?: 0 > 1) {
             startSlideshow()
         }
+        updateCartBadge()
     }
     
     override fun onPause() {
@@ -347,13 +366,16 @@ class ProductDetailActivity : AppCompatActivity() {
     }
     
     private fun navigateBackToMain() {
-        // Check if MainActivity is still in the task stack
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-        startActivity(intent)
+        // Prefer normal finish to preserve back stack if came from list
         finish()
     }
-    
+
+    private fun updateCartBadge() {
+        val count = CartManager.getItemCount()
+        headerCartBadge.text = count.toString()
+        headerCartBadge.isVisible = count > 0
+    }
+
     override fun onBackPressed() {
         super.onBackPressed()
     }

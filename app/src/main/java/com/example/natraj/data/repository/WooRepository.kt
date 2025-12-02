@@ -208,6 +208,16 @@ class WooRepository(private val context: Context) {
         return "vyapar@upi" // Replace with actual fetching logic
     }
 
+    suspend fun getBanners(): List<com.example.natraj.Banner> {
+        return listOf(
+            com.example.natraj.Banner(1, "Natraj Super", "Agricultural Equipment", "Quality farming solutions", "https://www.natrajsuper.com/wp-content/uploads/2024/01/banner-1.jpg"),
+            com.example.natraj.Banner(2, "Best Prices", "Guaranteed Quality", "Trusted by farmers", "https://www.natrajsuper.com/wp-content/uploads/2024/01/banner-2.jpg"),
+            com.example.natraj.Banner(3, "Fast Delivery", "Pan India Service", "Quick and reliable", "https://www.natrajsuper.com/wp-content/uploads/2024/01/banner-3.jpg"),
+            com.example.natraj.Banner(4, "Premium Quality", "Certified Products", "ISO certified equipment", "https://www.natrajsuper.com/wp-content/uploads/2024/01/banner-4.jpg"),
+            com.example.natraj.Banner(5, "Expert Support", "24/7 Customer Care", "Always here to help", "https://www.natrajsuper.com/wp-content/uploads/2024/01/banner-5.jpg")
+        )
+    }
+
     private fun mapProduct(p: WooProduct): Product {
         // Choose price precedence: sale -> regular -> price
         val priceStr = p.sale_price?.takeIf { it.isNotBlank() }

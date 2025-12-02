@@ -2,9 +2,6 @@ package com.example.natraj
 
 import android.content.Context
 import com.example.natraj.data.WpRepository
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.runBlocking
 
 object OfferManager {
@@ -12,14 +9,12 @@ object OfferManager {
 
     fun initialize(context: Context) {
         try {
-            // Try to fetch offers from WordPress API first
             runBlocking {
                 val wpRepository = WpRepository(context)
                 val offerBanners = wpRepository.getOfferBanners()
 
-                if (offerBanners.isNotEmpty()) {
-                    // Convert Banner objects to Offer objects
-                    offers = offerBanners.map { banner ->
+                offers = if (offerBanners.isNotEmpty()) {
+                    offerBanners.map { banner ->
                         Offer(
                             id = banner.id,
                             title = banner.title,
@@ -27,18 +22,19 @@ object OfferManager {
                             originalPrice = "",
                             salePrice = "",
                             imageUrl = banner.imageUrl,
-                            productUrl = "https://www.natrajsuper.com" // Default URL
+                            productUrl = "https://www.natrajsuper.com"
                         )
                     }
-                    android.util.Log.d("OfferManager", "Loaded ${offers.size} offers from WordPress API")
                 } else {
-                    android.util.Log.w("OfferManager", "No offers from WordPress, using fallback")
-                    loadFromJsonFallback(context)
+                    // Strictly no fallback — empty list to allow UI to show Coming soon
+                    emptyList()
                 }
+                android.util.Log.d("OfferManager", "Offers loaded: ${offers.size}")
             }
         } catch (e: Exception) {
             android.util.Log.e("OfferManager", "Error loading offers from WordPress", e)
-            loadFromJsonFallback(context)
+            // Strictly no fallback
+            offers = emptyList()
         }
     }
 
@@ -57,22 +53,5 @@ object OfferManager {
         }
     }
 
-    private fun loadFromJsonFallback(context: Context) {
-        try {
-            val json = context.assets.open("offers.json").bufferedReader().use { it.readText() }
-            val jsonObject = Gson().fromJson(json, JsonObject::class.java)
-
-            val offersArray = jsonObject.getAsJsonArray("offers")
-            // Use getParameterized to avoid issues with R8/proguard removing generic signatures
-            val offerType = TypeToken.getParameterized(java.util.List::class.java, Offer::class.java).type
-            offers = Gson().fromJson(offersArray, offerType)
-
-            android.util.Log.d("OfferManager", "Loaded ${offers.size} offers from JSON fallback")
-        } catch (e: Exception) {
-            android.util.Log.e("OfferManager", "Error loading offers from JSON", e)
-            offers = emptyList()
-        }
-    }
-    
     fun getAllOffers(): List<Offer> = offers
 }

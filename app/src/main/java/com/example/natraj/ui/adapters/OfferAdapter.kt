@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 class OfferAdapter(
     private val offers: List<Offer>,
@@ -30,10 +31,13 @@ class OfferAdapter(
             // Add strikethrough to original price
             originalPrice.paintFlags = originalPrice.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
             
-            // Load image with Glide
+            // Load image with Glide, enforce centerCrop and smooth fade
             Glide.with(itemView.context)
                 .load(offer.imageUrl)
+                .centerCrop()
                 .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
+                .transition(DrawableTransitionOptions.withCrossFade())
                 .into(offerImage)
 
             itemView.setOnClickListener { onOfferClick(offer) }
