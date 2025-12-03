@@ -58,4 +58,9 @@
     <color name="overlay_dark">#80000000</color>
     <color name="nav_bar_color">#FFFFFF</color>
     <color name="status_bar_color">#1976D2</color>
+    
+    <!-- Natraj Brand Colors -->
+    <color name="orange_primary">#FF6B35</color>
+    <color name="red_primary">#D32F2F</color>
+    <color name="gold_primary">#FFB300</color>
 </resources>

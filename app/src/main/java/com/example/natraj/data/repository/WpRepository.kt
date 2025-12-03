@@ -1,9 +1,10 @@
-package com.example.natraj.data
+package com.example.natraj.data.repository
 
 import android.content.Context
 import androidx.core.text.HtmlCompat
 import com.example.natraj.Banner
 import com.example.natraj.BlogPost
+import com.example.natraj.data.AppConfig
 import com.example.natraj.data.wp.WpClient
 import com.example.natraj.data.wp.WpMediaDetails
 // Note: I removed the alias imports that were causing confusion and used the local data classes defined at the bottom
@@ -43,6 +44,23 @@ class WpRepository(private val context: Context) {
     }
 
     suspend fun getBanners(): List<Banner> {
+        return try {
+            // First try to get banners from WordPress API
+            val wpBanners = getBannersFromWordPress()
+
+            if (wpBanners.isNotEmpty()) {
+                wpBanners
+            } else {
+                // Fallback to hardcoded Natraj Super banners from their homepage
+                getNatrajSuperHomepageBanners()
+            }
+        } catch (e: Exception) {
+            // If API fails, return hardcoded banners from homepage
+            getNatrajSuperHomepageBanners()
+        }
+    }
+
+    private suspend fun getBannersFromWordPress(): List<Banner> {
         val apiMediaItems = api.getMedia(perPage = AppConfig.getMediaPerPage(context), search = null)
 
         val bannerItems = apiMediaItems.filter { item ->
@@ -84,46 +102,60 @@ class WpRepository(private val context: Context) {
                 )
             }
         }
-        // Strictly return empty, no hardcoded fallback
         return emptyList()
     }
 
-    private fun extractBannerSubtitle(rawTitle: String, altText: String, caption: String): String {
-        val combinedText = "$rawTitle $altText $caption".lowercase()
-        return when {
-            combinedText.contains("50") && combinedText.contains("off") -> "UP TO 50% OFF"
-            combinedText.contains("40") && combinedText.contains("off") -> "UP TO 40% OFF"
-            combinedText.contains("30") && combinedText.contains("off") -> "UP TO 30% OFF"
-            combinedText.contains("free") && combinedText.contains("delivery") -> "FREE DELIVERY"
-            combinedText.contains("sale") -> "LIMITED TIME SALE"
-            combinedText.contains("offer") -> "SPECIAL OFFER"
-            else -> ""
-        }
-    }
-
-    private fun extractBannerDescription(rawTitle: String, altText: String, caption: String): String {
-        val combinedText = "$rawTitle $altText $caption"
-        return when {
-            combinedText.contains("agricultural", ignoreCase = true) -> "Discover our wide range of high-quality agricultural machinery and equipment"
-            combinedText.contains("farm", ignoreCase = true) -> "Quality farm machinery for modern agriculture"
-            combinedText.contains("delivery", ignoreCase = true) -> "Get free delivery on all orders above ₹2000 across India"
-            combinedText.contains("trusted", ignoreCase = true) -> "Trusted by farmers across India for quality and reliability"
-            else -> ""
-        }
-    }
-
-    private fun getBestImageUrlFromApi(item: com.example.natraj.data.wp.WpMediaItem): String {
-        // Note: I had to change the type above to the API model, not the local data class model
-        val sizes = item.mediaDetails?.sizes
-        if (sizes != null) {
-            val preferredSizes = listOf("large", "full", "medium_large", "medium")
-            for (sizeName in preferredSizes) {
-                sizes[sizeName]?.let { size ->
-                    return size.sourceUrl
-                }
-            }
-        }
-        return item.sourceUrl
+    private fun getNatrajSuperHomepageBanners(): List<Banner> {
+        return listOf(
+            Banner(
+                id = 1,
+                title = "Guaranteed Hot Selling HTP Pumps",
+                subtitle = "BEST QUALITY ASSURED",
+                description = "High performance pumps with guaranteed quality and reliability for all your agricultural needs",
+                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/2024/htp-pump-banner.jpg",
+                ctaText = "Shop Pumps"
+            ),
+            Banner(
+                id = 2,
+                title = "Premium Agricultural Equipment",
+                subtitle = "DURABLE & EFFICIENT",
+                description = "Complete range of farming machinery designed for modern agriculture and maximum productivity",
+                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/2024/agricultural-equipment-banner.jpg",
+                ctaText = "Explore Equipment"
+            ),
+            Banner(
+                id = 3,
+                title = "Sprayers & Irrigation Solutions",
+                subtitle = "WATER MANAGEMENT SYSTEMS",
+                description = "Advanced spraying and irrigation equipment for optimal crop care and water efficiency",
+                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/2024/sprayer-banner.jpg",
+                ctaText = "View Sprayers"
+            ),
+            Banner(
+                id = 4,
+                title = "Power Tools & Machinery",
+                subtitle = "HEAVY DUTY PERFORMANCE",
+                description = "Professional grade power tools and machinery for construction and agricultural applications",
+                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/2024/power-tools-banner.jpg",
+                ctaText = "Shop Tools"
+            ),
+            Banner(
+                id = 5,
+                title = "Welding & Workshop Equipment",
+                subtitle = "PROFESSIONAL GRADE",
+                description = "Complete welding solutions and workshop equipment for repair and maintenance needs",
+                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/2024/welding-banner.jpg",
+                ctaText = "Workshop Tools"
+            ),
+            Banner(
+                id = 6,
+                title = "Free Delivery Pan India",
+                subtitle = "ORDER ABOVE ₹2000",
+                description = "Get free shipping across India on all orders above ₹2000. Fast and reliable delivery guaranteed",
+                imageUrl = "https://www.natrajsuper.com/wp-content/uploads/2024/free-delivery-banner.jpg",
+                ctaText = "Start Shopping"
+            )
+        )
     }
 
     suspend fun getOfferBanners(): List<Banner> {
@@ -179,6 +211,43 @@ class WpRepository(private val context: Context) {
             rawTitle.contains("special", ignoreCase = true) -> "Get the best deals on premium products"
             else -> "Don't miss out on these exclusive offers"
         }
+    }
+
+    private fun extractBannerSubtitle(rawTitle: String, altText: String, caption: String): String {
+        val combinedText = "$rawTitle $altText $caption".lowercase()
+        return when {
+            combinedText.contains("50") && combinedText.contains("off") -> "UP TO 50% OFF"
+            combinedText.contains("40") && combinedText.contains("off") -> "UP TO 40% OFF"
+            combinedText.contains("30") && combinedText.contains("off") -> "UP TO 30% OFF"
+            combinedText.contains("free") && combinedText.contains("delivery") -> "FREE DELIVERY"
+            combinedText.contains("sale") -> "LIMITED TIME SALE"
+            combinedText.contains("offer") -> "SPECIAL OFFER"
+            else -> ""
+        }
+    }
+
+    private fun extractBannerDescription(rawTitle: String, altText: String, caption: String): String {
+        val combinedText = "$rawTitle $altText $caption"
+        return when {
+            combinedText.contains("agricultural", ignoreCase = true) -> "Discover our wide range of high-quality agricultural machinery and equipment"
+            combinedText.contains("farm", ignoreCase = true) -> "Quality farm machinery for modern agriculture"
+            combinedText.contains("delivery", ignoreCase = true) -> "Get free delivery on all orders above ₹2000 across India"
+            combinedText.contains("trusted", ignoreCase = true) -> "Trusted by farmers across India for quality and reliability"
+            else -> ""
+        }
+    }
+
+    private fun getBestImageUrlFromApi(item: com.example.natraj.data.wp.WpMediaItem): String {
+        val sizes = item.mediaDetails?.sizes
+        if (sizes != null) {
+            val preferredSizes = listOf("large", "full", "medium_large", "medium")
+            for (sizeName in preferredSizes) {
+                sizes[sizeName]?.let { size ->
+                    return size.sourceUrl
+                }
+            }
+        }
+        return item.sourceUrl
     }
 
     // New WordPress API methods

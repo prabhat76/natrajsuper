@@ -22,9 +22,9 @@
 
         <!-- Category Icon with Background -->
         <FrameLayout
-            android:layout_width="56dp"
-            android:layout_height="56dp">
-            
+            android:layout_width="64dp"
+            android:layout_height="64dp">
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -32,11 +32,23 @@
                 
             <ImageView
                 android:id="@+id/category_icon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_gravity="center"
-                android:scaleType="centerInside"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/category_icon"
                 tools:src="@drawable/ic_category" />
+
+            <!-- Special Offer Badge -->
+            <View
+                android:id="@+id/offer_badge"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_category_badge"
+                android:visibility="gone" />
 
         </FrameLayout>
 
@@ -45,15 +57,16 @@
             android:id="@+id/category_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:gravity="center"
             android:textAppearance="@style/TextAppearance.Material3.BodySmall"
             android:textStyle="bold"
             android:textColor="?attr/colorOnSurface"
             android:maxLines="2"
             android:ellipsize="end"
-            android:textSize="12sp"
-            tools:text="Sprayers" />
+            android:textSize="11sp"
+            android:lineSpacingExtra="1dp"
+            tools:text="Sprayers\n(15)" />
 
     </LinearLayout>
 

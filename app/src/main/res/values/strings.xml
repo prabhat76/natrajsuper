@@ -8,6 +8,9 @@
     <string name="whatsapp_not_installed">WhatsApp not installed</string>
     <string name="opening_search">Opening search</string>
     
+    <!-- Category accessibility -->
+    <string name="category_icon">Category icon</string>
+
     <!-- Profile Screen -->
     <string name="profile_hello">Hello,</string>
     <string name="profile_guest_user">Guest User</string>
@@ -18,8 +21,8 @@
     <string name="profile_settings">Settings</string>
     <string name="profile_help_support">Help &amp; Support</string>
     <string name="profile_logout">Logout</string>
-    <string name="profile_arrow">></string>
-    
+    <string name="profile_arrow">&gt;</string>
+
     <!-- Profile Emojis -->
     <string name="emoji_package">📦</string>
     <string name="emoji_heart">❤️</string>

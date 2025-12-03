@@ -1,7 +1,7 @@
 package com.example.natraj
 
 import android.content.Context
-import com.example.natraj.data.WpRepository
+import com.example.natraj.data.repository.WpRepository
 import kotlinx.coroutines.runBlocking
 
 object OfferManager {

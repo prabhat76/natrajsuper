@@ -2,7 +2,7 @@ package com.example.natraj.data.wp
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.natraj.data.WpRepository
+import com.example.natraj.data.repository.WpRepository
 
 class WpAuthManager(private val context: Context) {
     

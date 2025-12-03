@@ -26,16 +26,23 @@ class BannerAdapter(
 
             // Load banner image with better quality settings
             if (banner.imageUrl.isNotEmpty()) {
+                val placeholder = try {
+                    // use a local drawable if present
+                    itemView.context.resources.getIdentifier("ic_banner_placeholder", "drawable", itemView.context.packageName)
+                } catch (ex: Exception) { 0 }
+
+                val placeholderRes = if (placeholder != 0) placeholder else android.R.color.transparent
+
                 Glide.with(itemView.context)
                     .load(banner.imageUrl)
                     .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
                     .skipMemoryCache(false)
-                    .placeholder(android.R.color.transparent)
-                    .error(android.R.color.transparent)
+                    .placeholder(placeholderRes)
+                    .error(placeholderRes)
                     .centerCrop()
                     .into(bannerImage)
             } else {
-                // If no image URL, hide the image view to show gradient background
+                // If no image URL, clear the image to show gradient background
                 bannerImage.setImageDrawable(null)
             }
 

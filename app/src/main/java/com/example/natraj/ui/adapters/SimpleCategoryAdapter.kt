@@ -21,25 +21,35 @@ class SimpleCategoryAdapter(
         private val categoryIcon: ImageView = itemView.findViewById(R.id.category_icon)
         private val categoryName: TextView = itemView.findViewById(R.id.category_name)
         private val selectionIndicator: View = itemView.findViewById(R.id.selection_indicator)
+        private val offerBadge: View = itemView.findViewById(R.id.offer_badge)
 
         fun bind(category: Category, position: Int) {
-            categoryName.text = category.name
-            
-            // Load category image from URL or use fallback icon
-            if (category.imageUrl.isNotEmpty()) {
-                Glide.with(itemView.context)
-                    .load(category.imageUrl)
-                    .placeholder(R.drawable.ic_category)
-                    .error(R.drawable.ic_category)
-                    .centerCrop()
-                    .into(categoryIcon)
-                
-                // Remove tint when using actual images
-                categoryIcon.setColorFilter(null)
+            // Set category name with product count if available
+            categoryName.text = if (category.productCount > 0) {
+                "${category.name}\n(${category.productCount})"
             } else {
-                // Use fallback icon without tint - show original colors
-                categoryIcon.setImageResource(getCategoryIcon(category.name))
-                categoryIcon.setColorFilter(null)
+                category.name
+            }
+            
+            // Load category image - prioritize imageResId over URL
+            when {
+                category.imageResId != 0 -> {
+                    categoryIcon.setImageResource(category.imageResId)
+                    categoryIcon.setColorFilter(null)
+                }
+                category.imageUrl.isNotEmpty() -> {
+                    Glide.with(itemView.context)
+                        .load(category.imageUrl)
+                        .placeholder(getCategoryIcon(category.name))
+                        .error(getCategoryIcon(category.name))
+                        .centerCrop()
+                        .into(categoryIcon)
+                    categoryIcon.setColorFilter(null)
+                }
+                else -> {
+                    categoryIcon.setImageResource(getCategoryIcon(category.name))
+                    categoryIcon.setColorFilter(null)
+                }
             }
             
             // Show selection state
@@ -47,7 +57,17 @@ class SimpleCategoryAdapter(
             selectionIndicator.visibility = if (isSelected) View.VISIBLE else View.GONE
             
             // Animate card elevation for selected state
-            card.cardElevation = if (isSelected) 4f else 2f
+            card.cardElevation = if (isSelected) 6f else 3f
+            
+            // Show special offer badge and styling
+            if (category.hasSpecialOffer) {
+                offerBadge.visibility = View.VISIBLE
+                card.strokeColor = itemView.context.getColor(R.color.orange_primary)
+                card.strokeWidth = 2
+            } else {
+                offerBadge.visibility = View.GONE
+                card.strokeWidth = 0
+            }
             
             // Click handler
             itemView.setOnClickListener {

@@ -37,6 +37,7 @@ import com.example.natraj.ui.activities.AllProductsActivity
 import com.example.natraj.ui.activities.MainActivity
 import com.example.natraj.ui.adapters.GridProductAdapter
 import com.example.natraj.util.CustomToast
+import com.example.natraj.data.repository.WpRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -49,7 +50,7 @@ import com.example.natraj.ProductDetailActivity
 import com.example.natraj.SimpleCategoryAdapter
 import com.example.natraj.ui.activities.CategoryProductsActivity
 import com.example.natraj.ProductManager
-import com.example.natraj.data.WpRepository
+import android.util.Log
 
 class HomeFragment : Fragment() {
 
@@ -255,34 +256,109 @@ class HomeFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val repository = WpRepository(requireContext())
-                val banners = withContext(Dispatchers.IO) { repository.getBanners() }
+                val banners = withContext(Dispatchers.IO) {
+                    repository.getBanners()
+                }
+
                 if (banners.isNotEmpty()) {
-                    bannerViewPager.adapter = BannerAdapter(banners)
+                    bannerViewPager.adapter = BannerAdapter(banners) { banner ->
+                        // Handle banner click - navigate to appropriate section
+                        when {
+                            banner.title.contains("pump", ignoreCase = true) -> {
+                                // Navigate to pumps category
+                                val intent = Intent(requireContext(), CategoryProductsActivity::class.java)
+                                intent.putExtra("category_id", 1)
+                                intent.putExtra("category_name", "Pumps")
+                                startActivity(intent)
+                            }
+                            banner.title.contains("sprayer", ignoreCase = true) -> {
+                                // Navigate to sprayers category
+                                val intent = Intent(requireContext(), CategoryProductsActivity::class.java)
+                                intent.putExtra("category_id", 3)
+                                intent.putExtra("category_name", "Sprayers")
+                                startActivity(intent)
+                            }
+                            banner.title.contains("delivery", ignoreCase = true) -> {
+                                // Show delivery info or navigate to products
+                                showToast("Free delivery on orders above ₹2000!")
+                            }
+                            else -> {
+                                // Navigate to all products
+                                val intent = Intent(requireContext(), AllProductsActivity::class.java)
+                                startActivity(intent)
+                            }
+                        }
+                    }
                     emptyStateStrip.visibility = View.GONE
+
+                    // Auto-scroll banners every 4 seconds
+                    setupBannerAutoScroll(banners.size)
                 } else {
                     bannerViewPager.adapter = BannerAdapter(emptyList())
                     emptyStateStrip.visibility = View.VISIBLE
+                    emptyStateStrip.text = "Loading premium agricultural equipment offers..."
                 }
             } catch (e: Exception) {
+                Log.e("HomeFragment", "Error loading banners: ${e.message}")
                 bannerViewPager.adapter = BannerAdapter(emptyList())
                 emptyStateStrip.visibility = View.VISIBLE
+                emptyStateStrip.text = "Natraj Super - Premium Agricultural Equipment"
             }
+        }
+    }
+
+    private fun setupBannerAutoScroll(bannerCount: Int) {
+        if (bannerCount > 1) {
+            val handler = android.os.Handler(android.os.Looper.getMainLooper())
+            val scrollRunnable = object : Runnable {
+                override fun run() {
+                    val currentItem = bannerViewPager.currentItem
+                    val nextItem = if (currentItem == bannerCount - 1) 0 else currentItem + 1
+                    bannerViewPager.setCurrentItem(nextItem, true)
+                    handler.postDelayed(this, 4000) // 4 seconds
+                }
+            }
+            handler.postDelayed(scrollRunnable, 4000)
         }
     }
 
     private fun setupCategories() {
         categoriesRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        val categories = listOf(
-            Category(1, "Tractors", 0, "https://via.placeholder.com/150x150/1976D2/FFFFFF?text=Tractors"),
-            Category(2, "Implements", 0, "https://via.placeholder.com/150x150/2196F3/FFFFFF?text=Implements"),
-            Category(3, "Sprayers", 0, "https://via.placeholder.com/150x150/42A5F5/FFFFFF?text=Sprayers"),
-            Category(4, "Harvesters", 0, "https://via.placeholder.com/150x150/1565C0/FFFFFF?text=Harvesters")
-        )
-        categoriesRecycler.adapter = SimpleCategoryAdapter(categories) { category ->
-            val intent = Intent(requireContext(), CategoryProductsActivity::class.java)
-            intent.putExtra("category_id", category.id)
-            intent.putExtra("category_name", category.name)
-            startActivity(intent)
+        
+        // Load categories from WooCommerce
+        lifecycleScope.launch {
+            try {
+                val wooRepository = WooRepository(requireContext())
+                val wooCategories = withContext(Dispatchers.IO) { wooRepository.getCategories() }
+
+                // The repository already maps to app Category model; prepend an "All" item
+                val categories = mutableListOf<Category>().apply {
+                    add(Category(0, "All", R.drawable.ic_category, "", hasSpecialOffer = false, productCount = 0))
+                    addAll(wooCategories)
+                }
+
+                categoriesRecycler.adapter = com.example.natraj.SimpleCategoryAdapter(categories) { category ->
+                    val intent = Intent(requireContext(), com.example.natraj.ui.activities.CategoryProductsActivity::class.java)
+                    intent.putExtra("category_id", category.id)
+                    intent.putExtra("category_name", category.name)
+                    startActivity(intent)
+                }
+
+            } catch (e: Exception) {
+                // Fallback to local categories if API fails
+                val fallbackCategories = listOf(
+                    Category(0, "All", R.drawable.ic_category, "", hasSpecialOffer = false, productCount = 0),
+                    Category(1, "Sprayers", R.drawable.ic_spray, "", hasSpecialOffer = true, productCount = 15),
+                    Category(2, "Compressors", R.drawable.ic_compressor, "", hasSpecialOffer = false, productCount = 8),
+                    Category(3, "Pumps", R.drawable.ic_pump, "", hasSpecialOffer = false, productCount = 10)
+                )
+                categoriesRecycler.adapter = com.example.natraj.SimpleCategoryAdapter(fallbackCategories) { category ->
+                    val intent = Intent(requireContext(), com.example.natraj.ui.activities.CategoryProductsActivity::class.java)
+                    intent.putExtra("category_id", category.id)
+                    intent.putExtra("category_name", category.name)
+                    startActivity(intent)
+                }
+            }
         }
     }
 
